@@ -1,0 +1,20 @@
+{
+  "mono": {
+    "archivo": "plano-mono.png",
+    "xmin": 0.1384,
+    "xmax": 3.8019,
+    "ymin": -0.0522,
+    "ymax": 8.7524,
+    "px": 499,
+    "py": 1200
+  },
+  "dos": {
+    "archivo": "plano-dos.png",
+    "xmin": 3.8629,
+    "xmax": 10.9578,
+    "ymin": -0.0644,
+    "ymax": 8.4471,
+    "px": 1000,
+    "py": 1200
+  }
+}

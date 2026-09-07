@@ -1,0 +1,16 @@
+Aca van los siete panoramas del render, con estos nombres exactos:
+
+  mono_entrada.jpg
+  mono_estar.jpg
+  mono_balcon.jpg
+  dos_dormitorio.jpg
+  dos_comedor.jpg
+  dos_living.jpg
+  dos_balcon.jpg
+
+Salen de  ...\edificio\export\tour360_salida\panoramas\  al correr 2-panoramas.bat.
+Son los mismos nombres que el "id" de cada camara en camaras.json: si cambias uno,
+cambialo tambien en el index.html.
+
+Para actualizar cuando termine el render, desde esta carpeta:
+  copy /Y "..\..\export\tour360_salida\panoramas\*.jpg" .
