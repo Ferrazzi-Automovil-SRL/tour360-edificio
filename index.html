@@ -1,1233 +1,464 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es-AR">
-  <head>
-    <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width,initial-scale=1,viewport-fit=cover"
-    />
-    <title>FRG · Recorrido 360</title>
-    <meta
-      name="description"
-      content="Recorrido 360° de las unidades del FRG. Monoambiente y dos ambientes, 5.º piso."
-    />
-    <meta name="theme-color" content="#0a0c10" />
-    <meta property="og:title" content="FRG · Recorrido 360" />
-    <meta
-      property="og:description"
-      content="Caminá las unidades antes de que existan."
-    />
-    <meta property="og:type" content="website" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Mulish:wght@300;400;600;800&family=Open+Sans:wght@400;600&display=swap"
-      rel="stylesheet"
-    />
-    <style>
-      /* =========================================================================
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>FRG · Recorrido 360</title>
+<meta name="description" content="Recorrido 360° de las unidades del FRG. Monoambiente y dos ambientes, 5.º piso.">
+<meta name="theme-color" content="#0a0c10">
+<meta property="og:title" content="FRG · Recorrido 360">
+<meta property="og:description" content="Caminá las unidades antes de que existan.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mulish:wght@300;400;600;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* =========================================================================
    Identidad
    ========================================================================= */
-      :root {
-        --azul: #0056ff;
-        --azul-claro: #3d84ff;
-        --tinta: #0a0c10;
-        --tinta-2: #151922;
-        --papel: #ffffff;
-        --gris: #8b93a3;
-        --borde: rgba(255, 255, 255, 0.14);
-        --vidrio: rgba(14, 17, 24, 0.72);
-        --sombra: 0 18px 50px rgba(0, 0, 0, 0.45);
-        --r: 14px;
-        --barra: 64px;
-      }
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
-      html,
-      body {
-        height: 100%;
-      }
-      body {
-        background: var(--tinta);
-        color: var(--papel);
-        font-family:
-          "Open Sans",
-          system-ui,
-          -apple-system,
-          Segoe UI,
-          sans-serif;
-        font-size: 15px;
-        line-height: 1.6;
-        overflow: hidden;
-        -webkit-font-smoothing: antialiased;
-        overscroll-behavior: none;
-      }
-      h1,
-      h2,
-      h3,
-      .mul {
-        font-family: "Mulish", "Open Sans", sans-serif;
-      }
-      button {
-        font: inherit;
-        color: inherit;
-        background: none;
-        border: 0;
-        cursor: pointer;
-      }
-      a {
-        color: inherit;
-        text-decoration: none;
-      }
-      :focus-visible {
-        outline: 2px solid var(--azul-claro);
-        outline-offset: 3px;
-        border-radius: 6px;
-      }
+:root{
+  --azul:#0056FF;
+  --azul-claro:#3d84ff;
+  --tinta:#0a0c10;
+  --tinta-2:#151922;
+  --papel:#ffffff;
+  --gris:#8b93a3;
+  --borde:rgba(255,255,255,.14);
+  --vidrio:rgba(14,17,24,.72);
+  --sombra:0 18px 50px rgba(0,0,0,.45);
+  --r:14px;
+  --barra:64px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--tinta);color:var(--papel);
+  font-family:"Open Sans",system-ui,-apple-system,Segoe UI,sans-serif;
+  font-size:15px;line-height:1.6;overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+  overscroll-behavior:none;
+}
+h1,h2,h3,.mul{font-family:"Mulish","Open Sans",sans-serif}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--azul-claro);outline-offset:3px;border-radius:6px}
 
-      /* =========================================================================
+/* =========================================================================
    Escenario
    ========================================================================= */
-      #stage {
-        position: fixed;
-        inset: 0;
-        background: #05070b;
-      }
-      #gl {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        display: block;
-        cursor: grab;
-        touch-action: none;
-        background: #05070b;
-      }
-      #gl.dragging {
-        cursor: grabbing;
-      }
-      #hud {
-        position: absolute;
-        inset: 0;
-        pointer-events: none;
-      }
+#stage{position:fixed;inset:0;background:#05070b}
+#gl{position:absolute;inset:0;width:100%;height:100%;display:block;
+    cursor:grab;touch-action:none;background:#05070b}
+#gl.dragging{cursor:grabbing}
+#hud{position:absolute;inset:0;pointer-events:none}
 
-      /* ---- hotspots ---- */
-      .hs {
-        position: absolute;
-        transform: translate(-50%, -50%);
-        display: none;
-        align-items: center;
-        gap: 9px;
-        pointer-events: auto;
-        padding: 5px 5px 5px 5px;
-        border-radius: 999px;
-        background: rgba(10, 12, 16, 0);
-        transition: background 0.18s;
-        white-space: nowrap;
-      }
-      .hs:hover,
-      .hs:focus-visible {
-        background: rgba(10, 12, 16, 0.55);
-        backdrop-filter: blur(6px);
-      }
-      .hs .dot {
-        width: 42px;
-        height: 42px;
-        border-radius: 50%;
-        display: grid;
-        place-items: center;
-        flex: 0 0 auto;
-        background: rgba(255, 255, 255, 0.14);
-        border: 1.5px solid rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(5px);
-        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
-        transition:
-          transform 0.18s cubic-bezier(0.2, 0.8, 0.3, 1),
-          background 0.18s,
-          border-color 0.18s;
-      }
-      .hs:hover .dot,
-      .hs:focus-visible .dot {
-        transform: scale(1.12);
-        background: var(--azul);
-        border-color: #fff;
-      }
-      .hs svg {
-        width: 20px;
-        height: 20px;
-        fill: none;
-        stroke: #fff;
-        stroke-width: 2;
-        stroke-linecap: round;
-        stroke-linejoin: round;
-      }
-      .hs .lbl {
-        font-size: 12.5px;
-        letter-spacing: 0.02em;
-        font-weight: 600;
-        font-family: "Mulish", sans-serif;
-        opacity: 0;
-        transform: translateX(-6px);
-        transition:
-          opacity 0.18s,
-          transform 0.18s;
-        padding-right: 10px;
-        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
-        max-width: 0;
-        overflow: hidden;
-      }
-      .hs:hover .lbl,
-      .hs:focus-visible .lbl {
-        opacity: 1;
-        transform: none;
-        max-width: 260px;
-      }
-      /* salto: anillo en el piso + latido */
-      .hs.salto .dot {
-        width: 52px;
-        height: 52px;
-        background: rgba(0, 86, 255, 0.22);
-        border-color: rgba(255, 255, 255, 0.85);
-      }
-      .hs.salto::before {
-        content: "";
-        position: absolute;
-        left: 26px;
-        top: 50%;
-        width: 52px;
-        height: 52px;
-        margin: -26px 0 0 -26px;
-        border-radius: 50%;
-        border: 1.5px solid rgba(255, 255, 255, 0.55);
-        animation: latido 2.4s ease-out infinite;
-        pointer-events: none;
-      }
-      @keyframes latido {
-        0% {
-          transform: scale(0.7);
-          opacity: 0.9;
-        }
-        70% {
-          transform: scale(1.5);
-          opacity: 0;
-        }
-        100% {
-          opacity: 0;
-        }
-      }
-      .hs.dato .dot {
-        width: 34px;
-        height: 34px;
-        background: rgba(0, 86, 255, 0.75);
-        border-color: rgba(255, 255, 255, 0.55);
-      }
-      .hs.dato svg {
-        width: 16px;
-        height: 16px;
-      }
-      .hs[data-listo="0"] {
-        opacity: 0.35;
-        pointer-events: none;
-      }
-      /* salto que quedó fuera de cuadro: se pega al borde como indicador de giro */
-      .hs.borde {
-        opacity: 0.9;
-      }
-      .hs.borde::before {
-        display: none;
-      }
-      .hs.borde .dot {
-        width: 36px;
-        height: 36px;
-        background: rgba(10, 12, 16, 0.62);
-        border-color: rgba(255, 255, 255, 0.5);
-      }
-      .hs.borde .lbl {
-        opacity: 1;
-        transform: none;
-        max-width: 210px;
-        font-size: 11.5px;
-        color: #dfe4ec;
-      }
-      .hs.borde[data-lado="der"] {
-        transform: translate(-100%, -50%);
-        flex-direction: row-reverse;
-      }
-      .hs.borde[data-lado="der"] .lbl {
-        padding: 0 0 0 11px;
-      }
-      .hs.borde[data-lado="izq"] {
-        transform: translate(0, -50%);
-      }
-      .hs.borde[data-lado="der"] svg {
-        transform: rotate(-90deg);
-      }
-      .hs.borde[data-lado="izq"] svg {
-        transform: rotate(90deg);
-      }
-      @media (max-width: 520px) {
-        .hs.borde .lbl {
-          display: none;
-        }
-      }
+/* ---- hotspots ---- */
+.hs{
+  position:absolute;transform:translate(-50%,-50%);
+  display:none;align-items:center;gap:9px;pointer-events:auto;
+  padding:5px 5px 5px 5px;border-radius:999px;
+  background:rgba(10,12,16,0);transition:background .18s;
+  white-space:nowrap;
+}
+.hs:hover,.hs:focus-visible{background:rgba(10,12,16,.55);backdrop-filter:blur(6px)}
+.hs .dot{
+  width:42px;height:42px;border-radius:50%;display:grid;place-items:center;flex:0 0 auto;
+  background:rgba(255,255,255,.14);border:1.5px solid rgba(255,255,255,.7);
+  backdrop-filter:blur(5px);box-shadow:0 4px 18px rgba(0,0,0,.45);
+  transition:transform .18s cubic-bezier(.2,.8,.3,1),background .18s,border-color .18s;
+}
+.hs:hover .dot,.hs:focus-visible .dot{transform:scale(1.12);background:var(--azul);border-color:#fff}
+.hs svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.hs .lbl{
+  font-size:12.5px;letter-spacing:.02em;font-weight:600;font-family:"Mulish",sans-serif;
+  opacity:0;transform:translateX(-6px);transition:opacity .18s,transform .18s;
+  padding-right:10px;text-shadow:0 2px 10px rgba(0,0,0,.8);max-width:0;overflow:hidden;
+}
+.hs:hover .lbl,.hs:focus-visible .lbl{opacity:1;transform:none;max-width:260px}
+/* salto: anillo en el piso + latido */
+.hs.salto .dot{
+  width:52px;height:52px;background:rgba(0,86,255,.22);border-color:rgba(255,255,255,.85);
+}
+.hs.salto::before{
+  content:"";position:absolute;left:26px;top:50%;width:52px;height:52px;
+  margin:-26px 0 0 -26px;border-radius:50%;border:1.5px solid rgba(255,255,255,.55);
+  animation:latido 2.4s ease-out infinite;pointer-events:none;
+}
+@keyframes latido{
+  0%{transform:scale(.7);opacity:.9}
+  70%{transform:scale(1.5);opacity:0}
+  100%{opacity:0}
+}
+.hs.dato .dot{width:34px;height:34px;background:rgba(0,86,255,.75);border-color:rgba(255,255,255,.55)}
+.hs.dato svg{width:16px;height:16px}
+.hs[data-listo="0"]{opacity:.35;pointer-events:none}
+/* salto que quedó fuera de cuadro: se pega al borde como indicador de giro */
+.hs.borde{opacity:.9}
+.hs.borde::before{display:none}
+.hs.borde .dot{width:36px;height:36px;background:rgba(10,12,16,.62);border-color:rgba(255,255,255,.5)}
+.hs.borde .lbl{opacity:1;transform:none;max-width:210px;font-size:11.5px;color:#dfe4ec}
+.hs.borde[data-lado="der"]{transform:translate(-100%,-50%);flex-direction:row-reverse}
+.hs.borde[data-lado="der"] .lbl{padding:0 0 0 11px}
+.hs.borde[data-lado="izq"]{transform:translate(0,-50%)}
+.hs.borde[data-lado="der"] svg{transform:rotate(-90deg)}
+.hs.borde[data-lado="izq"] svg{transform:rotate(90deg)}
+@media (max-width:520px){ .hs.borde .lbl{display:none} }
 
-      /* =========================================================================
+/* =========================================================================
    Barra superior
    ========================================================================= */
-      #top {
-        position: absolute;
-        left: 0;
-        right: 0;
-        top: 0;
-        height: var(--barra);
-        z-index: 20;
-        display: flex;
-        align-items: center;
-        gap: 18px;
-        padding: 0 16px;
-        background: linear-gradient(
-          180deg,
-          rgba(6, 8, 12, 0.85),
-          rgba(6, 8, 12, 0)
-        );
-        pointer-events: none;
-      }
-      #top > * {
-        pointer-events: auto;
-      }
-      .logo {
-        display: flex;
-        align-items: baseline;
-        gap: 10px;
-        user-select: none;
-      }
-      .logo b {
-        font-family: "Mulish", sans-serif;
-        font-weight: 800;
-        font-size: 21px;
-        letter-spacing: 0.08em;
-      }
-      .logo span {
-        font-size: 11.5px;
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
-        color: var(--gris);
-      }
+#top{
+  position:absolute;left:0;right:0;top:0;height:var(--barra);z-index:20;
+  display:flex;align-items:center;gap:18px;padding:0 16px;
+  background:linear-gradient(180deg,rgba(6,8,12,.85),rgba(6,8,12,0));
+  pointer-events:none;
+}
+#top > *{pointer-events:auto}
+.logo{display:flex;align-items:baseline;gap:10px;user-select:none}
+.logo b{font-family:"Mulish",sans-serif;font-weight:800;font-size:21px;letter-spacing:.08em}
+.logo span{font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--gris)}
 
-      /* selector de unidad */
-      #unidades {
-        display: flex;
-        gap: 3px;
-        padding: 3px;
-        border-radius: 999px;
-        background: var(--vidrio);
-        border: 1px solid var(--borde);
-        backdrop-filter: blur(14px);
-      }
-      #unidades button {
-        padding: 8px 18px;
-        border-radius: 999px;
-        font-family: "Mulish", sans-serif;
-        font-weight: 600;
-        font-size: 13.5px;
-        color: var(--gris);
-        transition:
-          color 0.2s,
-          background 0.2s;
-        white-space: nowrap;
-      }
-      #unidades button[aria-current="true"] {
-        background: var(--azul);
-        color: #fff;
-      }
-      #unidades button:hover:not([aria-current="true"]) {
-        color: #fff;
-      }
+/* selector de unidad */
+#unidades{
+  display:flex;gap:3px;padding:3px;border-radius:999px;
+  background:var(--vidrio);border:1px solid var(--borde);backdrop-filter:blur(14px);
+}
+#unidades button{
+  padding:8px 18px;border-radius:999px;font-family:"Mulish",sans-serif;font-weight:600;
+  font-size:13.5px;color:var(--gris);transition:color .2s,background .2s;white-space:nowrap;
+}
+#unidades button[aria-current="true"]{background:var(--azul);color:#fff}
+#unidades button:hover:not([aria-current="true"]){color:#fff}
 
-      .crece {
-        flex: 1;
-      }
-      .iconbtn {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        display: grid;
-        place-items: center;
-        background: var(--vidrio);
-        border: 1px solid var(--borde);
-        backdrop-filter: blur(14px);
-        transition: background 0.2s;
-      }
-      .iconbtn:hover {
-        background: rgba(0, 86, 255, 0.65);
-      }
-      .iconbtn svg {
-        width: 19px;
-        height: 19px;
-        fill: none;
-        stroke: #fff;
-        stroke-width: 1.8;
-        stroke-linecap: round;
-        stroke-linejoin: round;
-      }
+.crece{flex:1}
+.iconbtn{
+  width:40px;height:40px;border-radius:50%;display:grid;place-items:center;
+  background:var(--vidrio);border:1px solid var(--borde);backdrop-filter:blur(14px);
+  transition:background .2s;
+}
+.iconbtn:hover{background:rgba(0,86,255,.65)}
+.iconbtn svg{width:19px;height:19px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 
-      /* =========================================================================
+/* =========================================================================
    Barra inferior: ambientes
    ========================================================================= */
-      #bottom {
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        z-index: 20;
-        padding: 0 16px calc(16px + env(safe-area-inset-bottom));
-        display: flex;
-        align-items: flex-end;
-        gap: 14px;
-        background: linear-gradient(
-          0deg,
-          rgba(6, 8, 12, 0.8),
-          rgba(6, 8, 12, 0)
-        );
-        pointer-events: none;
-      }
-      #bottom > * {
-        pointer-events: auto;
-      }
-      #ambientes {
-        display: flex;
-        gap: 8px;
-        overflow-x: auto;
-        padding: 10px 2px;
-        scrollbar-width: none;
-        flex: 1;
-      }
-      #ambientes::-webkit-scrollbar {
-        display: none;
-      }
-      .amb {
-        padding: 9px 16px;
-        border-radius: 999px;
-        white-space: nowrap;
-        font-size: 13px;
-        font-weight: 600;
-        font-family: "Mulish", sans-serif;
-        color: #cfd5e0;
-        background: var(--vidrio);
-        border: 1px solid var(--borde);
-        backdrop-filter: blur(14px);
-        transition:
-          background 0.2s,
-          color 0.2s,
-          border-color 0.2s;
-      }
-      .amb:hover {
-        color: #fff;
-        border-color: rgba(255, 255, 255, 0.3);
-      }
-      .amb[aria-current="true"] {
-        background: #fff;
-        color: var(--tinta);
-        border-color: #fff;
-      }
+#bottom{
+  position:absolute;left:0;right:0;bottom:0;z-index:20;
+  padding:0 16px calc(16px + env(safe-area-inset-bottom));
+  display:flex;align-items:flex-end;gap:14px;
+  background:linear-gradient(0deg,rgba(6,8,12,.8),rgba(6,8,12,0));
+  pointer-events:none;
+}
+#bottom > *{pointer-events:auto}
+#ambientes{
+  display:flex;gap:8px;overflow-x:auto;padding:10px 2px;scrollbar-width:none;flex:1;
+}
+#ambientes::-webkit-scrollbar{display:none}
+.amb{
+  padding:9px 16px;border-radius:999px;white-space:nowrap;font-size:13px;font-weight:600;
+  font-family:"Mulish",sans-serif;color:#cfd5e0;
+  background:var(--vidrio);border:1px solid var(--borde);backdrop-filter:blur(14px);
+  transition:background .2s,color .2s,border-color .2s;
+}
+.amb:hover{color:#fff;border-color:rgba(255,255,255,.3)}
+.amb[aria-current="true"]{background:#fff;color:var(--tinta);border-color:#fff}
 
-      /* =========================================================================
+/* =========================================================================
    Plano
    ========================================================================= */
-      /* El plano va en papel, no en vidrio: contra la interfaz oscura se lee como un
+/* El plano va en papel, no en vidrio: contra la interfaz oscura se lee como un
    plano impreso y no como otro panel más. */
-      #plano {
-        position: relative;
-        flex: 0 0 auto;
-        height: 246px;
-        padding: 9px;
-        border-radius: var(--r);
-        background: rgba(246, 244, 240, 0.95);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        box-shadow: 0 16px 44px rgba(0, 0, 0, 0.45);
-        margin-bottom: 10px;
-        transition: height 0.25s;
-      }
-      #planoCaja {
-        position: relative;
-        height: 100%;
-      }
-      #planoCaja img {
-        display: block;
-        height: 100%;
-        width: auto;
-        user-select: none;
-        -webkit-user-drag: none;
-      }
-      #planoCaja svg {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        overflow: visible;
-      }
-      #plano .lupa {
-        position: absolute;
-        right: 6px;
-        top: 6px;
-        width: 26px;
-        height: 26px;
-        border-radius: 8px;
-        display: grid;
-        place-items: center;
-        background: rgba(20, 24, 31, 0.06);
-        color: #4a5160;
-        opacity: 0;
-        transition:
-          opacity 0.18s,
-          background 0.18s;
-      }
-      #plano:hover .lupa {
-        opacity: 1;
-      }
-      #plano .lupa:hover {
-        background: rgba(0, 86, 255, 0.14);
-        color: var(--azul);
-      }
-      #plano .lupa svg {
-        position: static;
-        width: 15px;
-        height: 15px;
-        fill: none;
-        stroke: currentColor;
-        stroke-width: 2;
-        stroke-linecap: round;
-      }
-      .cono {
-        fill: var(--azul);
-        opacity: 0.22;
-      }
-      .pin {
-        fill: #fff;
-        stroke: #4a5160;
-        stroke-width: 5;
-        cursor: pointer;
-        transition:
-          fill 0.18s,
-          stroke 0.18s;
-      }
-      .pinG {
-        cursor: pointer;
-      }
-      .pinG:hover .pin {
-        fill: #dce6ff;
-        stroke: var(--azul);
-      }
-      .pin.on {
-        fill: var(--azul);
-        stroke: #fff;
-        stroke-width: 6;
-      }
+#plano{
+  position:relative;flex:0 0 auto;height:246px;padding:9px;
+  border-radius:var(--r);background:rgba(246,244,240,.95);
+  border:1px solid rgba(255,255,255,.5);box-shadow:0 16px 44px rgba(0,0,0,.45);
+  margin-bottom:10px;transition:height .25s;
+}
+#planoCaja{position:relative;height:100%}
+#planoCaja img{display:block;height:100%;width:auto;user-select:none;-webkit-user-drag:none}
+#planoCaja svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+#plano .lupa{
+  position:absolute;right:6px;top:6px;width:26px;height:26px;border-radius:8px;
+  display:grid;place-items:center;background:rgba(20,24,31,.06);color:#4a5160;
+  opacity:0;transition:opacity .18s,background .18s;
+}
+#plano:hover .lupa{opacity:1}
+#plano .lupa:hover{background:rgba(0,86,255,.14);color:var(--azul)}
+#plano .lupa svg{position:static;width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.cono{fill:var(--azul);opacity:.22}
+.pin{fill:#fff;stroke:#4a5160;stroke-width:5;cursor:pointer;transition:fill .18s,stroke .18s}
+.pinG{cursor:pointer}
+.pinG:hover .pin{fill:#dce6ff;stroke:var(--azul)}
+.pin.on{fill:var(--azul);stroke:#fff;stroke-width:6}
 
-      /* =========================================================================
+/* =========================================================================
    Plano grande
    ========================================================================= */
-      #planoGrande {
-        position: absolute;
-        inset: 0;
-        z-index: 80;
-        display: grid;
-        place-items: center;
-        padding: 20px;
-        background: rgba(4, 6, 10, 0.87);
-        backdrop-filter: blur(7px);
-        transition: opacity 0.22s;
-      }
-      #planoGrande.off {
-        opacity: 0;
-        pointer-events: none;
-      }
-      #planoGrande .hoja {
-        background: #f6f4f0;
-        color: #14181f;
-        border-radius: 18px;
-        padding: 14px 14px 16px;
-        box-shadow: 0 34px 90px rgba(0, 0, 0, 0.65);
-        max-width: min(94vw, 1120px);
-        max-height: 92vh;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
-      #planoGrande header {
-        display: flex;
-        align-items: baseline;
-        gap: 12px;
-        padding: 2px 4px 0;
-      }
-      #planoGrande h2 {
-        font-family: "Mulish", sans-serif;
-        font-size: 17px;
-        font-weight: 800;
-      }
-      #planoGrande .sub {
-        font-size: 12px;
-        color: #6c7484;
-        flex: 1;
-      }
-      #pgX {
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        display: grid;
-        place-items: center;
-        font-size: 20px;
-        line-height: 1;
-        color: #6c7484;
-        align-self: flex-start;
-      }
-      #pgX:hover {
-        background: rgba(20, 24, 31, 0.08);
-        color: #14181f;
-      }
-      #planoGrande .lienzo {
-        position: relative;
-        min-height: 0;
-        display: grid;
-        place-items: center;
-      }
-      #planoGrande .marco {
-        position: relative;
-        max-width: 100%;
-        max-height: 100%;
-      }
-      #planoGrande .marco img {
-        display: block;
-        max-height: calc(92vh - 112px);
-        max-width: 100%;
-        width: auto;
-        height: auto;
-        user-select: none;
-        -webkit-user-drag: none;
-      }
-      #planoGrande .marco svg {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        overflow: visible;
-      }
-      #planoGrande .etq {
-        font-family: "Mulish", sans-serif;
-        font-weight: 700;
-        fill: #20252f;
-        paint-order: stroke;
-        stroke: #f6f4f0;
-        stroke-width: 5;
-        stroke-linejoin: round;
-        pointer-events: none;
-      }
-      #planoGrande .etq.on {
-        fill: var(--azul);
-      }
-      @media (max-width: 600px) {
-        #planoGrande {
-          padding: 10px;
-        }
-        #planoGrande .hoja {
-          padding: 10px;
-        }
-        #planoGrande .marco img {
-          max-height: calc(92vh - 96px);
-        }
-      }
+#planoGrande{
+  position:absolute;inset:0;z-index:80;display:grid;place-items:center;padding:20px;
+  background:rgba(4,6,10,.87);backdrop-filter:blur(7px);transition:opacity .22s;
+}
+#planoGrande.off{opacity:0;pointer-events:none}
+#planoGrande .hoja{
+  background:#f6f4f0;color:#14181f;border-radius:18px;padding:14px 14px 16px;
+  box-shadow:0 34px 90px rgba(0,0,0,.65);max-width:min(94vw,1120px);max-height:92vh;
+  display:flex;flex-direction:column;gap:10px;
+}
+#planoGrande header{display:flex;align-items:baseline;gap:12px;padding:2px 4px 0}
+#planoGrande h2{font-family:"Mulish",sans-serif;font-size:17px;font-weight:800}
+#planoGrande .sub{font-size:12px;color:#6c7484;flex:1}
+#pgX{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;
+     font-size:20px;line-height:1;color:#6c7484;align-self:flex-start}
+#pgX:hover{background:rgba(20,24,31,.08);color:#14181f}
+#planoGrande .lienzo{position:relative;min-height:0;display:grid;place-items:center}
+#planoGrande .marco{position:relative;max-width:100%;max-height:100%}
+#planoGrande .marco img{display:block;max-height:calc(92vh - 112px);max-width:100%;
+                        width:auto;height:auto;user-select:none;-webkit-user-drag:none}
+#planoGrande .marco svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+#planoGrande .etq{font-family:"Mulish",sans-serif;font-weight:700;fill:#20252f;
+  paint-order:stroke;stroke:#f6f4f0;stroke-width:5;stroke-linejoin:round;pointer-events:none}
+#planoGrande .etq.on{fill:var(--azul)}
+@media (max-width:600px){
+  #planoGrande{padding:10px}
+  #planoGrande .hoja{padding:10px}
+  #planoGrande .marco img{max-height:calc(92vh - 96px)}
+}
 
-      /* =========================================================================
+/* =========================================================================
    Panel de datos
    ========================================================================= */
-      #ficha {
-        position: absolute;
-        right: 16px;
-        top: calc(var(--barra) + 12px);
-        width: 288px;
-        z-index: 25;
-        border-radius: var(--r);
-        background: var(--vidrio);
-        border: 1px solid var(--borde);
-        backdrop-filter: blur(18px);
-        box-shadow: var(--sombra);
-        overflow: hidden;
-        transform-origin: top right;
-        transition:
-          opacity 0.25s,
-          transform 0.25s;
-      }
-      #ficha.off {
-        opacity: 0;
-        transform: scale(0.96) translateY(-6px);
-        pointer-events: none;
-      }
-      #ficha header {
-        padding: 15px 16px 12px;
-        border-bottom: 1px solid var(--borde);
-      }
-      #ficha h2 {
-        font-size: 17px;
-        font-weight: 800;
-        letter-spacing: -0.01em;
-      }
-      #ficha header p {
-        font-size: 12px;
-        color: var(--gris);
-        margin-top: 2px;
-      }
-      #ficha dl {
-        padding: 6px 16px 12px;
-      }
-      #ficha .fila {
-        display: flex;
-        justify-content: space-between;
-        gap: 12px;
-        padding: 8px 0;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-      }
-      #ficha .fila:last-child {
-        border: 0;
-      }
-      #ficha dt {
-        font-size: 12.5px;
-        color: var(--gris);
-      }
-      #ficha dd {
-        font-size: 13px;
-        font-weight: 600;
-        font-family: "Mulish", sans-serif;
-        text-align: right;
-      }
-      #ficha .nota {
-        padding: 0 16px 14px;
-        font-size: 10.5px;
-        line-height: 1.55;
-        color: #6d7484;
-      }
-      #ficha .cta {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 9px;
-        width: 100%;
-        padding: 13px;
-        background: var(--azul);
-        font-family: "Mulish", sans-serif;
-        font-weight: 700;
-        font-size: 14px;
-        transition: background 0.2s;
-      }
-      #ficha .cta:hover {
-        background: #0048d6;
-      }
-      #ficha .cta svg {
-        width: 18px;
-        height: 18px;
-        fill: #fff;
-      }
+#ficha{
+  position:absolute;right:16px;top:calc(var(--barra) + 12px);width:288px;z-index:25;
+  border-radius:var(--r);background:var(--vidrio);border:1px solid var(--borde);
+  backdrop-filter:blur(18px);box-shadow:var(--sombra);overflow:hidden;
+  transform-origin:top right;transition:opacity .25s,transform .25s;
+}
+#ficha.off{opacity:0;transform:scale(.96) translateY(-6px);pointer-events:none}
+#ficha header{padding:15px 16px 12px;border-bottom:1px solid var(--borde)}
+#ficha h2{font-size:17px;font-weight:800;letter-spacing:-.01em}
+#ficha header p{font-size:12px;color:var(--gris);margin-top:2px}
+#ficha dl{padding:6px 16px 12px}
+#ficha .fila{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+#ficha .fila:last-child{border:0}
+#ficha dt{font-size:12.5px;color:var(--gris)}
+#ficha dd{font-size:13px;font-weight:600;font-family:"Mulish",sans-serif;text-align:right}
+#ficha .nota{padding:0 16px 14px;font-size:10.5px;line-height:1.55;color:#6d7484}
+#ficha .cta{
+  display:flex;align-items:center;justify-content:center;gap:9px;width:100%;
+  padding:13px;background:var(--azul);font-family:"Mulish",sans-serif;font-weight:700;
+  font-size:14px;transition:background .2s;
+}
+#ficha .cta:hover{background:#0048d6}
+#ficha .cta svg{width:18px;height:18px;fill:#fff}
 
-      /* =========================================================================
+/* =========================================================================
    Tarjeta de información
    ========================================================================= */
-      #tarjeta {
-        position: absolute;
-        left: 50%;
-        bottom: 96px;
-        transform: translate(-50%, 14px);
-        z-index: 30;
-        width: min(430px, calc(100vw - 32px));
-        border-radius: var(--r);
-        background: rgba(12, 15, 21, 0.9);
-        border: 1px solid var(--borde);
-        backdrop-filter: blur(18px);
-        box-shadow: var(--sombra);
-        padding: 18px 20px 20px;
-        opacity: 0;
-        pointer-events: none;
-        transition:
-          opacity 0.22s,
-          transform 0.22s;
-      }
-      #tarjeta.on {
-        opacity: 1;
-        transform: translate(-50%, 0);
-        pointer-events: auto;
-      }
-      #tarjeta h3 {
-        font-size: 16px;
-        font-weight: 800;
-        padding-right: 28px;
-      }
-      #tarjeta p {
-        font-size: 13.5px;
-        color: #c3cad6;
-        margin-top: 7px;
-      }
-      #tarjetaX {
-        position: absolute;
-        right: 12px;
-        top: 12px;
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        display: grid;
-        place-items: center;
-        color: var(--gris);
-        font-size: 18px;
-        line-height: 1;
-      }
-      #tarjetaX:hover {
-        background: rgba(255, 255, 255, 0.1);
-        color: #fff;
-      }
+#tarjeta{
+  position:absolute;left:50%;bottom:96px;transform:translate(-50%,14px);z-index:30;
+  width:min(430px,calc(100vw - 32px));
+  border-radius:var(--r);background:rgba(12,15,21,.9);border:1px solid var(--borde);
+  backdrop-filter:blur(18px);box-shadow:var(--sombra);
+  padding:18px 20px 20px;opacity:0;pointer-events:none;transition:opacity .22s,transform .22s;
+}
+#tarjeta.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+#tarjeta h3{font-size:16px;font-weight:800;padding-right:28px}
+#tarjeta p{font-size:13.5px;color:#c3cad6;margin-top:7px}
+#tarjetaX{position:absolute;right:12px;top:12px;width:28px;height:28px;border-radius:50%;
+  display:grid;place-items:center;color:var(--gris);font-size:18px;line-height:1}
+#tarjetaX:hover{background:rgba(255,255,255,.1);color:#fff}
 
-      /* =========================================================================
+/* =========================================================================
    Modo edición  (tecla E) — no se ve en el sitio publicado
    ========================================================================= */
-      #editor {
-        position: absolute;
-        left: 12px;
-        right: 12px;
-        bottom: 12px;
-        z-index: 90;
-        background: rgba(10, 13, 18, 0.94);
-        border: 1px solid rgba(255, 255, 255, 0.18);
-        border-radius: 12px;
-        padding: 12px 14px;
-        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.6);
-        display: flex;
-        flex-direction: column;
-        gap: 9px;
-        transition: opacity 0.2s;
-      }
-      #editor.off {
-        opacity: 0;
-        pointer-events: none;
-      }
-      #editor .fila1 {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        flex-wrap: wrap;
-      }
-      #editor .tag {
-        font-family: "Mulish", sans-serif;
-        font-weight: 800;
-        font-size: 11px;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        color: #ffd34d;
-      }
-      #editor .ayu {
-        font-size: 12px;
-        color: #98a0b0;
-        flex: 1;
-        min-width: 200px;
-      }
-      #editor button.bx {
-        padding: 7px 13px;
-        border-radius: 8px;
-        font-size: 12.5px;
-        font-weight: 600;
-        font-family: "Mulish", sans-serif;
-        background: rgba(255, 255, 255, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.16);
-      }
-      #editor button.bx:hover {
-        background: var(--azul);
-        border-color: var(--azul);
-      }
-      #editor pre {
-        margin: 0;
-        padding: 10px 12px;
-        border-radius: 8px;
-        background: rgba(0, 0, 0, 0.5);
-        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-        font-size: 12px;
-        line-height: 1.65;
-        color: #d7ddea;
-        white-space: pre-wrap;
-        max-height: 24vh;
-        overflow: auto;
-        user-select: text;
-      }
-      body.editando #gl {
-        cursor: crosshair;
-      }
-      body.editando .hs {
-        cursor: move;
-      }
-      body.editando .hs .lbl {
-        opacity: 1;
-        transform: none;
-        max-width: 260px;
-      }
-      #mira {
-        position: absolute;
-        width: 22px;
-        height: 22px;
-        margin: -11px 0 0 -11px;
-        z-index: 35;
-        border: 2px solid #ffd34d;
-        border-radius: 50%;
-        pointer-events: none;
-        display: none;
-      }
-      #mira::after {
-        content: "";
-        position: absolute;
-        inset: 8px;
-        background: #ffd34d;
-        border-radius: 50%;
-      }
+#editor{
+  position:absolute;left:12px;right:12px;bottom:12px;z-index:90;
+  background:rgba(10,13,18,.94);border:1px solid rgba(255,255,255,.18);
+  border-radius:12px;padding:12px 14px;box-shadow:0 18px 50px rgba(0,0,0,.6);
+  display:flex;flex-direction:column;gap:9px;transition:opacity .2s;
+}
+#editor.off{opacity:0;pointer-events:none}
+#editor .fila1{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+#editor .tag{font-family:"Mulish",sans-serif;font-weight:800;font-size:11px;
+  letter-spacing:.14em;text-transform:uppercase;color:#ffd34d}
+#editor .ayu{font-size:12px;color:#98a0b0;flex:1;min-width:200px}
+#editor button.bx{
+  padding:7px 13px;border-radius:8px;font-size:12.5px;font-weight:600;
+  font-family:"Mulish",sans-serif;background:rgba(255,255,255,.1);
+  border:1px solid rgba(255,255,255,.16);
+}
+#editor button.bx:hover{background:var(--azul);border-color:var(--azul)}
+#editor pre{
+  margin:0;padding:10px 12px;border-radius:8px;background:rgba(0,0,0,.5);
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:12px;line-height:1.65;color:#d7ddea;white-space:pre-wrap;
+  max-height:24vh;overflow:auto;user-select:text;
+}
+body.editando #gl{cursor:crosshair}
+body.editando .hs{cursor:move}
+body.editando .hs .lbl{opacity:1;transform:none;max-width:260px}
+#mira{position:absolute;width:22px;height:22px;margin:-11px 0 0 -11px;z-index:35;
+  border:2px solid #ffd34d;border-radius:50%;pointer-events:none;display:none}
+#mira::after{content:"";position:absolute;inset:8px;background:#ffd34d;border-radius:50%}
 
-      /* =========================================================================
+/* =========================================================================
    Carga, ayuda, errores
    ========================================================================= */
-      #carga {
-        position: absolute;
-        inset: 0;
-        z-index: 60;
-        display: grid;
-        place-items: center;
-        background: var(--tinta);
-        transition: opacity 0.5s;
-        text-align: center;
-        padding: 24px;
-      }
-      #carga.off {
-        opacity: 0;
-        pointer-events: none;
-      }
-      #carga .marca {
-        font-family: "Mulish", sans-serif;
-        font-weight: 800;
-        font-size: 34px;
-        letter-spacing: 0.12em;
-      }
-      #carga .sub {
-        font-size: 12px;
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
-        color: var(--gris);
-        margin-top: 6px;
-      }
-      #barra {
-        width: 212px;
-        height: 2px;
-        background: rgba(255, 255, 255, 0.12);
-        border-radius: 2px;
-        margin: 26px auto 0;
-        overflow: hidden;
-      }
-      #barra i {
-        display: block;
-        height: 100%;
-        width: 0;
-        background: var(--azul);
-        transition: width 0.3s;
-      }
-      #cargaMsg {
-        font-size: 12px;
-        color: var(--gris);
-        margin-top: 12px;
-        min-height: 18px;
-      }
-      #ayuda {
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 15;
-        max-width: min(88vw, 460px);
-        text-align: left;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 11px 20px;
-        border-radius: 999px;
-        background: rgba(10, 12, 16, 0.62);
-        backdrop-filter: blur(10px);
-        border: 1px solid var(--borde);
-        font-size: 13px;
-        color: #dfe4ec;
-        pointer-events: none;
-        transition: opacity 0.6s;
-      }
-      #ayuda.off {
-        opacity: 0;
-      }
-      #ayuda svg {
-        width: 19px;
-        height: 19px;
-        fill: none;
-        stroke: #fff;
-        stroke-width: 1.7;
-        stroke-linecap: round;
-        stroke-linejoin: round;
-      }
-      #girando {
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        width: 34px;
-        height: 34px;
-        margin: -17px;
-        z-index: 35;
-        border: 2.5px solid rgba(255, 255, 255, 0.2);
-        border-top-color: #fff;
-        border-radius: 50%;
-        animation: giro 0.8s linear infinite;
-        opacity: 0;
-        transition: opacity 0.2s;
-        pointer-events: none;
-      }
-      #girando.on {
-        opacity: 1;
-      }
-      @keyframes giro {
-        to {
-          transform: rotate(360deg);
-        }
-      }
+#carga{
+  position:absolute;inset:0;z-index:60;display:grid;place-items:center;
+  background:var(--tinta);transition:opacity .5s;text-align:center;padding:24px;
+}
+#carga.off{opacity:0;pointer-events:none}
+#carga .marca{font-family:"Mulish",sans-serif;font-weight:800;font-size:34px;letter-spacing:.12em}
+#carga .sub{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--gris);margin-top:6px}
+#barra{width:212px;height:2px;background:rgba(255,255,255,.12);border-radius:2px;margin:26px auto 0;overflow:hidden}
+#barra i{display:block;height:100%;width:0;background:var(--azul);transition:width .3s}
+#cargaMsg{font-size:12px;color:var(--gris);margin-top:12px;min-height:18px}
+#ayuda{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:15;
+  max-width:min(88vw,460px);text-align:left;
+  display:flex;align-items:center;gap:10px;padding:11px 20px;border-radius:999px;
+  background:rgba(10,12,16,.62);backdrop-filter:blur(10px);border:1px solid var(--borde);
+  font-size:13px;color:#dfe4ec;pointer-events:none;transition:opacity .6s;
+}
+#ayuda.off{opacity:0}
+#ayuda svg{width:19px;height:19px;fill:none;stroke:#fff;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+#girando{
+  position:absolute;left:50%;top:50%;width:34px;height:34px;margin:-17px;z-index:35;
+  border:2.5px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;
+  animation:giro .8s linear infinite;opacity:0;transition:opacity .2s;pointer-events:none;
+}
+#girando.on{opacity:1}
+@keyframes giro{to{transform:rotate(360deg)}}
 
-      /* =========================================================================
+/* =========================================================================
    Chico
    ========================================================================= */
-      @media (max-width: 860px) {
-        :root {
-          --barra: 56px;
-        }
-        .logo span {
-          display: none;
-        }
-        #ficha {
-          right: 10px;
-          left: 10px;
-          width: auto;
-          top: auto;
-          bottom: 150px;
-          max-width: none;
-        }
-        #ficha.off {
-          transform: translateY(10px) scale(0.98);
-        }
-        #plano {
-          height: 170px;
-          padding: 7px;
-        }
-        #plano .lupa {
-          display: none;
-        }
-        #tarjeta {
-          bottom: 150px;
-        }
-        #unidades button {
-          padding: 7px 13px;
-          font-size: 12.5px;
-        }
-      }
-      @media (max-width: 520px) {
-        #plano {
-          display: none;
-        }
-        #top {
-          gap: 9px;
-          padding: 0 10px;
-        }
-        #btnPantalla,
-        #btnCentrar {
-          display: none;
-        }
-        #unidades button {
-          padding: 7px 11px;
-          font-size: 12px;
-        }
-        #ayuda {
-          padding: 9px 15px;
-          font-size: 12px;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div id="stage">
-      <canvas id="gl"></canvas>
-      <div id="hud"></div>
+@media (max-width:860px){
+  :root{--barra:56px}
+  .logo span{display:none}
+  #ficha{right:10px;left:10px;width:auto;top:auto;bottom:150px;max-width:none}
+  #ficha.off{transform:translateY(10px) scale(.98)}
+  #plano{height:170px;padding:7px}
+  #plano .lupa{display:none}
+  #tarjeta{bottom:150px}
+  #unidades button{padding:7px 13px;font-size:12.5px}
+}
+@media (max-width:520px){
+  #plano{display:none}
+  #top{gap:9px;padding:0 10px}
+  #btnPantalla,#btnCentrar{display:none}
+  #unidades button{padding:7px 11px;font-size:12px}
+  #ayuda{padding:9px 15px;font-size:12px}
+}
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="gl"></canvas>
+  <div id="hud"></div>
 
-      <!-- ---------------- barra superior ---------------- -->
-      <div id="top">
-        <div class="logo">
-          <b id="marcaN">FRG</b><span id="marcaB">Recorrido 360</span>
-        </div>
-        <div id="unidades"></div>
-        <div class="crece"></div>
-        <button
-          class="iconbtn"
-          id="btnPlano"
-          title="Ver el plano"
-          aria-label="Ver el plano"
-        >
-          <svg viewBox="0 0 24 24">
-            <path d="M4 5.5 9.5 4l5 1.5L20 4v14.5L14.5 20l-5-1.5L4 20z" />
-            <path d="M9.5 4v14.5M14.5 5.5V20" />
-          </svg>
-        </button>
-        <button
-          class="iconbtn"
-          id="btnFicha"
-          title="Ficha de la unidad"
-          aria-label="Ficha de la unidad"
-        >
-          <svg viewBox="0 0 24 24">
-            <rect x="4" y="3" width="16" height="18" rx="2" />
-            <path d="M8 8h8M8 12h8M8 16h5" />
-          </svg>
-        </button>
-        <button
-          class="iconbtn"
-          id="btnCentrar"
-          title="Centrar la vista"
-          aria-label="Centrar la vista"
-        >
-          <svg viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="8" />
-            <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
-          </svg>
-        </button>
-        <button
-          class="iconbtn"
-          id="btnPantalla"
-          title="Pantalla completa"
-          aria-label="Pantalla completa"
-        >
-          <svg viewBox="0 0 24 24">
-            <path
-              d="M4 9V5a1 1 0 0 1 1-1h4M20 9V5a1 1 0 0 0-1-1h-4M4 15v4a1 1 0 0 0 1 1h4M20 15v4a1 1 0 0 1-1 1h-4"
-            />
-          </svg>
-        </button>
+  <!-- ---------------- barra superior ---------------- -->
+  <div id="top">
+    <div class="logo"><b id="marcaN">FRG</b><span id="marcaB">Recorrido 360</span></div>
+    <div id="unidades"></div>
+    <div class="crece"></div>
+    <button class="iconbtn" id="btnPlano" title="Ver el plano" aria-label="Ver el plano">
+      <svg viewBox="0 0 24 24"><path d="M4 5.5 9.5 4l5 1.5L20 4v14.5L14.5 20l-5-1.5L4 20z"/><path d="M9.5 4v14.5M14.5 5.5V20"/></svg>
+    </button>
+    <button class="iconbtn" id="btnFicha" title="Ficha de la unidad" aria-label="Ficha de la unidad">
+      <svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+    </button>
+    <button class="iconbtn" id="btnCentrar" title="Centrar la vista" aria-label="Centrar la vista">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+    </button>
+    <button class="iconbtn" id="btnPantalla" title="Pantalla completa" aria-label="Pantalla completa">
+      <svg viewBox="0 0 24 24"><path d="M4 9V5a1 1 0 0 1 1-1h4M20 9V5a1 1 0 0 0-1-1h-4M4 15v4a1 1 0 0 0 1 1h4M20 15v4a1 1 0 0 1-1 1h-4"/></svg>
+    </button>
+  </div>
+
+  <!-- ---------------- ficha ---------------- -->
+  <aside id="ficha" class="off">
+    <header><h2 id="fichaT">—</h2><p id="fichaS">—</p></header>
+    <dl id="fichaD"></dl>
+    <p class="nota">Medidas tomadas sobre el modelo 3D del proyecto, sin contar muros ni circulaciones. Sujetas a ajustes de obra y a la documentación definitiva. Las imágenes son representaciones no contractuales.</p>
+    <a class="cta" id="btnContacto" href="#" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.9-4.45 9.9-9.91C21.95 6.45 17.5 2 12.04 2m5.8 14.13c-.24.68-1.42 1.31-1.96 1.36-.5.05-.99.24-3.4-.71-2.86-1.13-4.68-4.05-4.82-4.24s-1.14-1.52-1.14-2.9c0-1.38.72-2.06.98-2.34.26-.28.56-.35.75-.35s.37 0 .54.01c.17.01.4-.07.63.48.23.56.79 1.94.86 2.08.07.14.12.3.02.49-.09.19-.14.3-.28.47-.14.16-.3.36-.42.48-.14.14-.29.29-.12.57.16.28.73 1.2 1.56 1.95 1.07.95 1.98 1.25 2.26 1.39.28.14.44.12.61-.07.16-.19.7-.82.89-1.1.19-.28.37-.23.63-.14.26.09 1.64.77 1.92.91.28.14.47.21.54.33.07.11.07.65-.17 1.33"/></svg>
+      <span>Consultar por esta unidad</span>
+    </a>
+  </aside>
+
+  <!-- ---------------- tarjeta ---------------- -->
+  <div id="tarjeta" role="dialog" aria-live="polite">
+    <button id="tarjetaX" aria-label="Cerrar">&times;</button>
+    <h3 id="tarjetaT"></h3>
+    <p id="tarjetaP"></p>
+  </div>
+
+  <!-- ---------------- barra inferior ---------------- -->
+  <div id="bottom">
+    <div id="plano" title="Ampliar el plano">
+      <div id="planoCaja">
+        <img id="planoImg" alt="Plano de la unidad">
+        <svg id="planoSvg" preserveAspectRatio="none" aria-hidden="true"></svg>
       </div>
+      <button class="lupa" id="btnLupa" aria-label="Ampliar el plano">
+        <svg viewBox="0 0 24 24"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg>
+      </button>
+    </div>
+    <div id="ambientes"></div>
+  </div>
 
-      <!-- ---------------- ficha ---------------- -->
-      <aside id="ficha" class="off">
-        <header>
-          <h2 id="fichaT">—</h2>
-          <p id="fichaS">—</p>
-        </header>
-        <dl id="fichaD"></dl>
-        <p class="nota">
-          Medidas tomadas sobre el modelo 3D del proyecto, sin contar muros ni
-          circulaciones. Sujetas a ajustes de obra y a la documentación
-          definitiva. Las imágenes son representaciones no contractuales.
-        </p>
-        <a class="cta" id="btnContacto" href="#" target="_blank" rel="noopener">
-          <svg viewBox="0 0 24 24">
-            <path
-              d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.9-4.45 9.9-9.91C21.95 6.45 17.5 2 12.04 2m5.8 14.13c-.24.68-1.42 1.31-1.96 1.36-.5.05-.99.24-3.4-.71-2.86-1.13-4.68-4.05-4.82-4.24s-1.14-1.52-1.14-2.9c0-1.38.72-2.06.98-2.34.26-.28.56-.35.75-.35s.37 0 .54.01c.17.01.4-.07.63.48.23.56.79 1.94.86 2.08.07.14.12.3.02.49-.09.19-.14.3-.28.47-.14.16-.3.36-.42.48-.14.14-.29.29-.12.57.16.28.73 1.2 1.56 1.95 1.07.95 1.98 1.25 2.26 1.39.28.14.44.12.61-.07.16-.19.7-.82.89-1.1.19-.28.37-.23.63-.14.26.09 1.64.77 1.92.91.28.14.47.21.54.33.07.11.07.65-.17 1.33"
-            />
-          </svg>
-          <span>Consultar por esta unidad</span>
-        </a>
-      </aside>
-
-      <!-- ---------------- tarjeta ---------------- -->
-      <div id="tarjeta" role="dialog" aria-live="polite">
-        <button id="tarjetaX" aria-label="Cerrar">&times;</button>
-        <h3 id="tarjetaT"></h3>
-        <p id="tarjetaP"></p>
-      </div>
-
-      <!-- ---------------- barra inferior ---------------- -->
-      <div id="bottom">
-        <div id="plano" title="Ampliar el plano">
-          <div id="planoCaja">
-            <img id="planoImg" alt="Plano de la unidad" />
-            <svg
-              id="planoSvg"
-              preserveAspectRatio="none"
-              aria-hidden="true"
-            ></svg>
-          </div>
-          <button class="lupa" id="btnLupa" aria-label="Ampliar el plano">
-            <svg viewBox="0 0 24 24">
-              <path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7" />
-            </svg>
-          </button>
-        </div>
-        <div id="ambientes"></div>
-      </div>
-
-      <!-- ---------------- plano grande ---------------- -->
-      <div
-        id="planoGrande"
-        class="off"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Plano de la unidad"
-      >
-        <div class="hoja">
-          <header>
-            <h2 id="pgTit">—</h2>
-            <span class="sub" id="pgSub"></span>
-            <button id="pgX" aria-label="Cerrar">&times;</button>
-          </header>
-          <div class="lienzo">
-            <div class="marco">
-              <img id="pgImg" alt="" />
-              <svg
-                id="pgSvg"
-                preserveAspectRatio="none"
-                aria-hidden="true"
-              ></svg>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ---------------- modo edición ---------------- -->
-      <div id="mira"></div>
-      <div id="editor" class="off">
-        <div class="fila1">
-          <span class="tag">Modo edición</span>
-          <span class="ayu" id="edAyuda"
-            >Clic en la imagen = coordenadas de ese punto · arrastrá una marca
-            para moverla · E para salir</span
-          >
-          <button class="bx" id="edCopiar">Copiar</button>
-          <button class="bx" id="edEscena">Copiar la escena entera</button>
-          <button class="bx" id="edSalir">Salir</button>
-        </div>
-        <pre id="edSalida">Tocá algo del panorama.</pre>
-      </div>
-
-      <div id="girando"></div>
-      <div id="ayuda">
-        <svg viewBox="0 0 24 24"><path d="M9 6 5 12l4 6M15 6l4 6-4 6" /></svg>
-        <span id="ayudaT"
-          >Arrastrá para mirar alrededor · tocá los círculos para avanzar</span
-        >
-      </div>
-
-      <!-- ---------------- carga ---------------- -->
-      <div id="carga">
-        <div>
-          <div class="marca" id="cargaN">FRG</div>
-          <div class="sub">Recorrido 360</div>
-          <div id="barra"><i id="barraI"></i></div>
-          <div id="cargaMsg">Cargando…</div>
+  <!-- ---------------- plano grande ---------------- -->
+  <div id="planoGrande" class="off" role="dialog" aria-modal="true" aria-label="Plano de la unidad">
+    <div class="hoja">
+      <header>
+        <h2 id="pgTit">—</h2>
+        <span class="sub" id="pgSub"></span>
+        <button id="pgX" aria-label="Cerrar">&times;</button>
+      </header>
+      <div class="lienzo">
+        <div class="marco">
+          <img id="pgImg" alt="">
+          <svg id="pgSvg" preserveAspectRatio="none" aria-hidden="true"></svg>
         </div>
       </div>
     </div>
+  </div>
 
-    <script>
-      "use strict";
-      /* ===========================================================================
+  <!-- ---------------- modo edición ---------------- -->
+  <div id="mira"></div>
+  <div id="editor" class="off">
+    <div class="fila1">
+      <span class="tag">Modo edición</span>
+      <span class="ayu" id="edAyuda">Clic en la imagen = coordenadas de ese punto · arrastrá una marca para moverla · E para salir</span>
+      <button class="bx" id="edCopiar">Copiar</button>
+      <button class="bx" id="edEscena">Copiar la escena entera</button>
+      <button class="bx" id="edSalir">Salir</button>
+    </div>
+    <pre id="edSalida">Tocá algo del panorama.</pre>
+  </div>
+
+  <div id="girando"></div>
+  <div id="ayuda">
+    <svg viewBox="0 0 24 24"><path d="M9 6 5 12l4 6M15 6l4 6-4 6"/></svg>
+    <span id="ayudaT">Arrastrá para mirar alrededor · tocá los círculos para avanzar</span>
+  </div>
+
+  <!-- ---------------- carga ---------------- -->
+  <div id="carga">
+    <div>
+      <div class="marca" id="cargaN">FRG</div>
+      <div class="sub">Recorrido 360</div>
+      <div id="barra"><i id="barraI"></i></div>
+      <div id="cargaMsg">Cargando…</div>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ===========================================================================
    1. CONFIGURACIÓN — esto es lo único que se toca para editar el recorrido
    ===========================================================================
 
@@ -1241,215 +472,170 @@
    quedan corridos: son ángulos calculados, no dibujados a mano.
    =========================================================================== */
 
-      const MARCA = {
-        nombre: "FRG",
-        bajada: "Recorrido 360",
-        piso: "5.º piso",
-        whatsapp: "5491151080728", // ← poné tu número real, sin + ni espacios
-        mensaje:
-          "Hola, vi el recorrido 360 del FRG y quiero información sobre la unidad",
-      };
+const MARCA = {
+  nombre:   "FRG",
+  bajada:   "Recorrido 360",
+  piso:     "5.º piso",
+  whatsapp: "5491100000000",                       // ← poné tu número real, sin + ni espacios
+  mensaje:  "Hola, vi el recorrido 360 del FRG y quiero información sobre la unidad"
+};
 
-      const ALTURA_CAMARA = 1.6; // igual a "altura_camara" del camaras.json
-      const CARPETA = "panoramas/"; // dónde están los JPG, con la barra final
+const ALTURA_CAMARA = 1.60;      // igual a "altura_camara" del camaras.json
+const CARPETA = "panoramas/";    // dónde están los JPG, con la barra final
 
-      /* --- los planos de la esquina, uno por unidad ------------------------------
+/* --- los planos de la esquina, uno por unidad ------------------------------
    Los genera hacer-planos.py a partir del planta.png del paso 1, y escribe
    estos mismos números en planos.json. Si volvés a generarlos, pegá ese JSON
    acá tal cual: 'xmin/xmax/ymin/ymax' es el pedazo de planta que entró en el
    recorte, en metros, y es lo que le permite al visor poner cada pin en su
    lugar sin que nadie mida píxeles.                                          */
-      const PLANOS = {
-        mono: {
-          archivo: "plano-mono.png",
-          xmin: 0.1384,
-          xmax: 3.8019,
-          ymin: -0.0522,
-          ymax: 8.7524,
-          px: 499,
-          py: 1200,
-        },
-        dos: {
-          archivo: "plano-dos.png",
-          xmin: 3.8629,
-          xmax: 10.9578,
-          ymin: -0.0644,
-          ymax: 8.4471,
-          px: 1000,
-          py: 1200,
-        },
-      };
+const PLANOS = {
+  mono: { archivo:"plano-mono.png", xmin:0.1318, xmax:3.7988, ymin:-0.0646, ymax:8.7506, px:499, py:1200 },
+  dos:  { archivo:"plano-dos.png", xmin:3.8568, xmax:10.9657, ymin:-0.0646, ymax:8.4529, px:979, py:1173 }
+};
 
-      const UNIDADES = {
-        mono: {
-          nombre: "Monoambiente",
-          resumen: MARCA.piso + " · contrafrente",
-          datos: [
-            ["Ambientes", "1"],
-            ["Ambiente único", "3,05 × 5,60 m · 17,1 m²"],
-            ["Balcón", "2,30 × 1,65 m · 3,8 m²"],
-            ["Cocina", "Integrada, 2,45 m de mesada"],
-            ["Piso", MARCA.piso],
-          ],
-          inicio: "mono_estar", // con qué imagen abre la unidad
-          orden: ["mono_entrada", "mono_estar", "mono_balcon"],
-        },
-        dos: {
-          nombre: "Dos ambientes",
-          resumen: MARCA.piso + " · contrafrente",
-          datos: [
-            ["Ambientes", "2"],
-            ["Estar-comedor", "4,05 × 5,80 m · 23,5 m²"],
-            ["Dormitorio", "3,00 × 4,05 m · 12,1 m²"],
-            ["Balcón", "3,80 × 1,60 m · 6,1 m²"],
-            ["Cocina", "Integrada al estar"],
-            ["Piso", MARCA.piso],
-          ],
-          inicio: "dos_comedor",
-          orden: ["dos_dormitorio", "dos_comedor", "dos_living", "dos_balcon"],
-        },
-      };
+const UNIDADES = {
+  mono: {
+    nombre: "Monoambiente",
+    resumen: MARCA.piso + " · contrafrente",
+    datos: [
+      ["Ambientes",       "1"],
+      ["Ambiente único",  "3,05 × 5,60 m · 17,1 m²"],
+      ["Balcón",          "2,45 m de largo · 4,2 m²"],
+      ["Cocina",          "Integrada, 2,45 m de mesada"],
+      ["Piso",            MARCA.piso]
+    ],
+    inicio: "mono_estar",          // con qué imagen abre la unidad
+    orden: ["mono_entrada","mono_estar","mono_balcon"]
+  },
+  dos: {
+    nombre: "Dos ambientes",
+    resumen: MARCA.piso + " · contrafrente",
+    datos: [
+      ["Ambientes",     "2"],
+      ["Estar-comedor", "4,05 × 5,80 m · 23,5 m²"],
+      ["Dormitorio",    "3,00 × 4,05 m · 12,1 m²"],
+      ["Balcón",        "6,10 m de largo · 9,6 m²"],
+      ["Cocina",        "Lineal, 2,60 m de mesada"],
+      ["Piso",          MARCA.piso]
+    ],
+    inicio: "dos_comedor",
+    orden: ["dos_dormitorio","dos_comedor","dos_cocina","dos_living","dos_balcon","dos_balcon_dorm"]
+  }
+};
 
-      const ESCENAS = {
-        /* ---------------------------- MONOAMBIENTE ---------------------------- */
-        mono_entrada: {
-          nombre: "Entrada",
-          unidad: "mono",
-          pos: [3.35, 8.15],
-          giro: 180,
-          // El salto lleva un ángulo propio: la línea recta hasta el estar atraviesa
-          // la pared de la cocina, y la marca caía sobre la mesada. El paso real es
-          // el vano de adelante. El rumbo de LLEGADA sigue siendo el del viaje.
-          saltos: [{ a: "mono_estar", mirando: [2, -24] }],
-          datos: [
-            {
-              mirando: [40, -20],
-              titulo: "Cocina integrada",
-              texto:
-                "Mesada corrida de 2,45 m con bajo mesada y alacena en toda su extensión, más el paño de heladera y despensa sobre el otro lateral. Al quedar en el hall de acceso, no le come metros al ambiente.",
-            },
-            {
-              mirando: [-45, -8],
-              titulo: "Heladera y guardado",
-              texto:
-                "Nicho previsto para heladera de dos puertas, con columna de guardado al lado. Deja la mesada entera libre para trabajar.",
-            },
-          ],
-        },
-        mono_estar: {
-          nombre: "Estar",
-          unidad: "mono",
-          pos: [1.9, 5.9],
-          giro: 148,
-          vista: -40,
-          saltos: ["mono_entrada", "mono_balcon"],
-          datos: [
-            {
-              mirando: [-8, -20],
-              titulo: "Zona de descanso",
-              texto:
-                "El ambiente tiene 3,05 × 5,60 m: entra cama de dos plazas contra el frente sin bloquear el paso al balcón, y del otro lado queda lugar para estar y comedor diario.",
-            },
-            {
-              mirando: [-68, -3],
-              titulo: "Mueble de living y TV",
-              texto:
-                "Mueble bajo corrido con estantes altos sobre el paramento este, con el televisor integrado. Es el único módulo fijo del ambiente: todo lo demás se acomoda como quieras.",
-            },
-          ],
-        },
-        mono_balcon: {
-          nombre: "Balcón",
-          unidad: "mono",
-          pos: [2.2, 1.0],
-          giro: 180,
-          saltos: ["mono_estar"],
-          datos: [
-            {
-              mirando: [18, -27],
-              titulo: "Balcón de 3,8 m²",
-              texto:
-                "2,30 × 1,65 m, con antepecho de listones y pasamano metálico. Da para dos sillones y una mesa baja, con vista abierta sobre la manzana.",
-            },
-          ],
-        },
+const ESCENAS = {
+  /* ---------------------------- MONOAMBIENTE ---------------------------- */
+  mono_entrada: {
+    nombre:"Entrada", unidad:"mono",
+    pos:[3.35, 8.15], giro:180,
+    // El salto lleva un ángulo propio: la línea recta hasta el estar atraviesa
+    // la pared de la cocina, y la marca caía sobre la mesada. El paso real es
+    // el vano de adelante. El rumbo de LLEGADA sigue siendo el del viaje.
+    saltos:[{ a:"mono_estar", mirando:[2, -24] }],
+    datos:[
+      { mirando:[40, -20], titulo:"Cocina integrada",
+        texto:"Mesada corrida de 2,45 m con bajo mesada y alacena en toda su extensión, más el paño de heladera y despensa sobre el otro lateral. Al quedar en el hall de acceso, no le come metros al ambiente." },
+      { mirando:[-45, -8], titulo:"Heladera y guardado",
+        texto:"Nicho previsto para heladera de dos puertas, con columna de guardado al lado. Deja la mesada entera libre para trabajar." }
+    ]
+  },
+  mono_estar: {
+    nombre:"Estar", unidad:"mono",
+    pos:[1.90, 5.90], giro:148, vista:-40,
+    saltos:["mono_entrada","mono_balcon"],
+    datos:[
+      { mirando:[-8, -20], titulo:"Zona de descanso",
+        texto:"El ambiente tiene 3,05 × 5,60 m: entra cama de dos plazas contra el frente sin bloquear el paso al balcón, y del otro lado queda lugar para estar y comedor diario." },
+      { mirando:[-68, -3], titulo:"Mueble de living y TV",
+        texto:"Mueble bajo corrido con estantes altos sobre el paramento este, con el televisor integrado. Es el único módulo fijo del ambiente: todo lo demás se acomoda como quieras." }
+    ]
+  },
+  mono_balcon: {
+    nombre:"Balcón", unidad:"mono",
+    pos:[2.20, 1.00], giro:180,
+    saltos:["mono_estar"],
+    datos:[
+      { mirando:[25, -30], titulo:"Balcón de 4,2 m²",
+        texto:"2,45 m de largo por 1,89 de fondo máximo, con baranda metálica de barrotes verticales. Da para dos sillones y una mesa baja, con vista abierta sobre la manzana." }
+    ]
+  },
 
-        /* ---------------------------- DOS AMBIENTES --------------------------- */
-        dos_dormitorio: {
-          nombre: "Dormitorio",
-          unidad: "dos",
-          pos: [5.0, 4.7],
-          giro: 195,
-          saltos: ["dos_comedor"],
-          datos: [
-            {
-              mirando: [-145, -8],
-              titulo: "Placard de 2,80 m",
-              texto:
-                "Placard empotrado en todo el paramento norte del dormitorio, 2,80 m de frente con puertas corredizas. Al estar embutido no ocupa superficie del ambiente.",
-            },
-            {
-              en: [5.3, 3.27, 0.62],
-              titulo: "Dormitorio de 12,1 m²",
-              texto:
-                "3,00 × 4,05 m. Entra cama de dos plazas con mesas de luz a ambos lados y todavía queda circulación al pie y salida directa al balcón.",
-            },
-          ],
-        },
-        dos_comedor: {
-          nombre: "Comedor",
-          unidad: "dos",
-          pos: [7.6, 4.9],
-          giro: 273,
-          saltos: ["dos_dormitorio", "dos_living"],
-          datos: [
-            {
-              en: [9.71, 7.4, 1.15],
-              titulo: "Cocina de 2,85 m",
-              texto:
-                "Mesada corrida sobre el paramento norte con bajo mesada, alacena y espacio previsto para heladera y lavarropas.",
-            },
-            {
-              en: [9.34, 5.26, 0.78],
-              titulo: "Comedor para seis",
-              texto:
-                "El estar-comedor mide 4,05 × 5,80 m: la mesa de seis queda junto a la cocina y deja el resto del ambiente libre para el living.",
-            },
-          ],
-        },
-        dos_living: {
-          nombre: "Living",
-          unidad: "dos",
-          pos: [8.7, 2.9],
-          giro: 232,
-          saltos: ["dos_comedor", "dos_balcon"],
-          datos: [
-            {
-              en: [10.18, 3.2, 0.55],
-              titulo: "Estar de 22,2 m²",
-              texto:
-                "Un solo ambiente de 4,05 × 5,80 m, con la zona de estar sobre el balcón y el comedor del lado de la cocina. El paño vidriado ocupa todo el frente.",
-            },
-          ],
-        },
-        dos_balcon: {
-          nombre: "Balcón",
-          unidad: "dos",
-          pos: [8.6, 1.0],
-          giro: 180,
-          saltos: ["dos_living"],
-          datos: [
-            {
-              mirando: [22, -24],
-              titulo: "Balcón de 6,1 m²",
-              texto:
-                "3,80 × 1,60 m corridos sobre todo el frente del estar, con antepecho de listones y pasamano metálico, y salida directa desde el living.",
-            },
-          ],
-        },
-      };
+  /* ---------------------------- DOS AMBIENTES --------------------------- */
+  dos_dormitorio: {
+    nombre:"Dormitorio", unidad:"dos",
+    pos:[5.00, 4.70], giro:195,
+    saltos:["dos_comedor","dos_balcon_dorm"],
+    datos:[
+      { mirando:[-145, -8], titulo:"Placard de 2,80 m",
+        texto:"Placard empotrado en todo el paramento norte del dormitorio, 2,80 m de frente con puertas corredizas. Al estar embutido no ocupa superficie del ambiente." },
+      { en:[5.30, 3.27, 0.62], titulo:"Dormitorio de 12,1 m²",
+        texto:"3,00 × 4,05 m. Entra cama de dos plazas con mesas de luz a ambos lados y todavía queda circulación al pie y salida directa al balcón." }
+    ]
+  },
+  dos_comedor: {
+    nombre:"Comedor", unidad:"dos",
+    pos:[7.60, 4.90], giro:273,
+    // Los dos saltos llevan ángulo propio: la recta al living pasaba por encima
+    // de la mesa ratona y quedaba flotando, y la recta a la cocina atraviesa la
+    // barra. Los dos ángulos están medidos sobre el panorama.
+    saltos:["dos_dormitorio",
+            { a:"dos_living", mirando:[68, -36] },
+            { a:"dos_cocina", mirando:[-95, -30] }],
+    datos:[
+      { mirando:[-79, -4], titulo:"Mesada y frente",
+        texto:"Mesada corrida de 2,60 m con frente de azulejo tipo subway y bajo mesada en toda su extensión. Queda a la vista desde el comedor, así que el frente es parte del ambiente." },
+      { mirando:[-70, 9], titulo:"Alacena hasta el techo",
+        texto:"Alacena en dos alturas que llega al cielorraso. La fila de arriba suma guardado de poco uso sin ocupar un metro de superficie." },
+      { mirando:[-49, -21], titulo:"Isla desayunador",
+        texto:"La península separa la cocina del comedor sin cerrarla: mesada corrida, bajo mesada del lado de la cocina y lugar para dos banquetas del lado del estar." },
+      { en:[9.34, 5.26, 0.78], titulo:"Comedor para seis",
+        texto:"El estar-comedor mide 4,05 × 5,80 m: la mesa de seis queda junto a la cocina y deja el resto del ambiente libre para el living." }
+    ]
+  },
+  /* DENTRO del pasillo de trabajo. La cocina tiene tres franjas, medidas sobre
+     la planta a 5 cm:  barra y 6,95-7,60 · pasillo y 7,65-8,55 (90 cm) ·
+     mesada con anafe y 8,60-8,85 contra el muro norte. Se entra por x 7,00-7,95.
+       2-panoramas.bat "" dos_cocina                                            */
+  dos_cocina: {
+    nombre:"Cocina", unidad:"dos",
+    pos:[9.85, 8.10], giro:69,
+    saltos:[{ a:"dos_comedor", mirando:[-40, -25] }],
+    datos:[]
+  },
+  dos_living: {
+    nombre:"Living", unidad:"dos",
+    pos:[8.70, 2.90], giro:232,
+    saltos:["dos_comedor","dos_balcon"],
+    datos:[
+      { en:[10.18, 3.20, 0.55], titulo:"Estar de 22,2 m²",
+        texto:"Un solo ambiente de 4,05 × 5,80 m, con la zona de estar sobre el balcón y el comedor del lado de la cocina. El paño vidriado ocupa todo el frente." }
+    ]
+  },
+  dos_balcon: {
+    nombre:"Balcón · estar", unidad:"dos",
+    pos:[8.60, 1.00], giro:180,
+    saltos:["dos_living","dos_balcon_dorm"],
+    datos:[
+      { mirando:[25, -31], titulo:"Balcón corrido de 6,10 m",
+        texto:"9,6 m² de superficie pisable en un solo paño, con antepecho macizo revestido en listones y pasamano metálico. No es un balcón por ambiente: es uno solo que recorre todo el frente y al que se sale tanto desde el living como desde el dormitorio." }
+    ]
+  },
+  /* El otro extremo del MISMO balcón, en el tramo de adelante del dormitorio.
+     Con una sola cámara en x=8,60 esta mitad quedaba a 3 m y no se recorría.
+       2-panoramas.bat "" dos_balcon_dorm                                     */
+  dos_balcon_dorm: {
+    nombre:"Balcón · dormitorio", unidad:"dos",
+    pos:[5.82, 0.88], giro:264,
+    saltos:["dos_dormitorio","dos_balcon"],
+    datos:[
+      { mirando:[8, -16], titulo:"Se camina de punta a punta",
+        texto:"Desde acá hasta el extremo del estar hay 6,10 m sin interrupción: el dormitorio y el living dan al mismo balcón, no a dos balcones chicos." }
+    ]
+  }
+};
 
-      /* ===========================================================================
+/* ===========================================================================
    2. Geometría: de metros a ángulos
    ===========================================================================
    Rumbo (psi) = atan2(dx, dy). Es un ángulo del MUNDO, no de la foto: 0 apunta
@@ -1458,116 +644,90 @@
    es lo que permite que el fundido entre dos panoramas quede alineado: las dos
    imágenes muestran la misma dirección real mientras se cruzan.
    =========================================================================== */
-      const RAD = Math.PI / 180;
-      const listaEscenas = Object.keys(ESCENAS);
+const RAD = Math.PI / 180;
+const listaEscenas = Object.keys(ESCENAS);
 
-      function rumbo(desde, hacia) {
-        return Math.atan2(hacia[0] - desde[0], hacia[1] - desde[1]);
-      }
-      function dist2(a, b) {
-        return Math.hypot(b[0] - a[0], b[1] - a[1]);
-      }
-      function normAng(a) {
-        return (
-          ((((a + Math.PI) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI)) -
-          Math.PI
-        );
-      }
+function rumbo(desde, hacia){ return Math.atan2(hacia[0]-desde[0], hacia[1]-desde[1]); }
+function dist2(a, b){ return Math.hypot(b[0]-a[0], b[1]-a[1]); }
+function normAng(a){ return ((a + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI; }
 
-      /* Un salto se escribe de dos formas:
+/* Un salto se escribe de dos formas:
      "dos_comedor"                        la marca va sobre la línea de viaje
      { a:"mono_estar", mirando:[2,-24] }  la marca va donde vos digas
    La segunda sirve cuando la línea recta al destino atraviesa un muro y la
    flecha termina apoyada contra la pared en vez de en el paso real. El rumbo
    de llegada no cambia: siempre es hacia donde se camina. */
-      const idSalto = (s) => (typeof s === "string" ? s : s.a);
-      listaEscenas.forEach((k) => {
-        (ESCENAS[k].saltos || []).forEach((x) => {
-          const j = idSalto(x);
-          const s = ESCENAS[j].saltos || (ESCENAS[j].saltos = []);
-          if (!s.some((y) => idSalto(y) === k)) s.push(k);
-        });
-      });
+const idSalto = s => (typeof s === "string" ? s : s.a);
+listaEscenas.forEach(k => {
+  (ESCENAS[k].saltos || []).forEach(x => {
+    const j = idSalto(x);
+    const s = ESCENAS[j].saltos || (ESCENAS[j].saltos = []);
+    if (!s.some(y => idSalto(y) === k)) s.push(k);
+  });
+});
 
-      /* Cada escena arma su lista de marcas con rumbo y elevación ya resueltos. */
-      listaEscenas.forEach((k) => {
-        const e = ESCENAS[k];
-        e.marcas = [];
+/* Cada escena arma su lista de marcas con rumbo y elevación ya resueltos. */
+listaEscenas.forEach(k => {
+  const e = ESCENAS[k];
+  e.marcas = [];
 
-        e.saltos.forEach((sal) => {
-          const j = idSalto(sal),
-            o = ESCENAS[j];
-          const psi = rumbo(e.pos, o.pos);
-          const d = dist2(e.pos, o.pos);
-          // La marca no se planta encima del destino (quedaría atrás de un muro):
-          // flota sobre la línea de viaje, a una distancia caminable. La altura y la
-          // distancia no son estéticas: con la cámara a 1,60 m y medio encuadre
-          // vertical de 35°, el piso recién entra en cuadro más allá de los 2,3 m.
-          // Más cerca o más abajo, la marca cae fuera de la pantalla.
-          const dv = Math.max(2.6, Math.min(4.5, d * 0.9));
-          const man =
-            typeof sal === "object" && sal.mirando ? sal.mirando : null;
-          e.marcas.push({
-            tipo: "salto",
-            a: j,
-            manual: !!man,
-            psi: man ? (man[0] - e.giro) * RAD : psi,
-            el: man ? man[1] * RAD : Math.atan2(0.45 - ALTURA_CAMARA, dv),
-            titulo: "Ir a " + o.nombre.toLowerCase(),
-            rumboLlegada: psi, // se llega mirando hacia donde se caminó
-          });
-        });
+  e.saltos.forEach(sal => {
+    const j = idSalto(sal), o = ESCENAS[j];
+    const psi = rumbo(e.pos, o.pos);
+    const d   = dist2(e.pos, o.pos);
+    // La marca no se planta encima del destino (quedaría atrás de un muro):
+    // flota sobre la línea de viaje, a una distancia caminable. La altura y la
+    // distancia no son estéticas: con la cámara a 1,60 m y medio encuadre
+    // vertical de 35°, el piso recién entra en cuadro más allá de los 2,3 m.
+    // Más cerca o más abajo, la marca cae fuera de la pantalla.
+    const dv  = Math.max(2.6, Math.min(4.5, d * 0.9));
+    const man = (typeof sal === "object" && sal.mirando) ? sal.mirando : null;
+    e.marcas.push({
+      tipo:"salto", a:j, manual: !!man,
+      psi: man ? (man[0] - e.giro) * RAD : psi,
+      el:  man ? man[1] * RAD : Math.atan2(0.45 - ALTURA_CAMARA, dv),
+      titulo: "Ir a " + o.nombre.toLowerCase(),
+      rumboLlegada: psi                     // se llega mirando hacia donde se caminó
+    });
+  });
 
-        (e.datos || []).forEach((d) => {
-          // Dos formas de decir dónde está una cosa, las dos válidas:
-          //   en:[x,y,z]        un punto del plano  → el visor calcula el ángulo
-          //   mirando:[az,el]   un ángulo leído del panorama, en grados
-          // La primera es preferible porque no depende de la foto. La segunda sirve
-          // para lo que se ve pero no se puede ubicar con confianza en la planta.
-          let psi, el;
-          if (d.mirando) {
-            psi = (d.mirando[0] - e.giro) * RAD;
-            el = d.mirando[1] * RAD;
-          } else {
-            psi = rumbo(e.pos, d.en);
-            el = Math.atan2(
-              d.en[2] - ALTURA_CAMARA,
-              Math.max(0.35, dist2(e.pos, d.en)),
-            );
-          }
-          e.marcas.push({
-            tipo: "dato",
-            psi: psi,
-            el: el,
-            manual: !!d.mirando,
-            titulo: d.titulo,
-            texto: d.texto,
-          });
-        });
+  (e.datos || []).forEach(d => {
+    // Dos formas de decir dónde está una cosa, las dos válidas:
+    //   en:[x,y,z]        un punto del plano  → el visor calcula el ángulo
+    //   mirando:[az,el]   un ángulo leído del panorama, en grados
+    // La primera es preferible porque no depende de la foto. La segunda sirve
+    // para lo que se ve pero no se puede ubicar con confianza en la planta.
+    let psi, el;
+    if (d.mirando) {
+      psi = (d.mirando[0] - e.giro) * RAD;
+      el  = d.mirando[1] * RAD;
+    } else {
+      psi = rumbo(e.pos, d.en);
+      el  = Math.atan2(d.en[2] - ALTURA_CAMARA, Math.max(0.35, dist2(e.pos, d.en)));
+    }
+    e.marcas.push({ tipo:"dato", psi:psi, el:el, manual:!!d.mirando,
+                    titulo:d.titulo, texto:d.texto });
+  });
 
-        // Vista de arranque. Por defecto es el centro del panorama —el encuadre que
-        // se eligió al renderizar—; 'vista' lo corre unos grados cuando lo bueno del
-        // ambiente quedó a un costado. El acimut vale psi + giro: centrar es psi = -giro.
-        e.rumbo0 = ((e.vista || 0) - e.giro) * RAD;
-      });
+  // Vista de arranque. Por defecto es el centro del panorama —el encuadre que
+  // se eligió al renderizar—; 'vista' lo corre unos grados cuando lo bueno del
+  // ambiente quedó a un costado. El acimut vale psi + giro: centrar es psi = -giro.
+  e.rumbo0 = ((e.vista || 0) - e.giro) * RAD;
+});
 
-      /* ===========================================================================
+/* ===========================================================================
    3. WebGL: un triángulo y un shader
    ===========================================================================
    Dos texturas y DOS giros, uno por textura. Cada panorama aplica su propio
    'giro' de render sobre el mismo rumbo del mundo, así el cruce está alineado.
    =========================================================================== */
-      const cv = document.getElementById("gl");
-      const gl = cv.getContext("webgl", {
-        antialias: false,
-        alpha: false,
-        preserveDrawingBuffer: false,
-      });
+const cv = document.getElementById("gl");
+const gl = cv.getContext("webgl", {antialias:false, alpha:false, preserveDrawingBuffer:false});
 
-      const VS = `attribute vec2 p; varying vec2 v;
+const VS = `attribute vec2 p; varying vec2 v;
 void main(){ v = p; gl_Position = vec4(p, 0.0, 1.0); }`;
 
-      const FS = `
+const FS = `
 #ifdef GL_FRAGMENT_PRECISION_HIGH
 precision highp float;
 #else
@@ -1575,7 +735,7 @@ precision mediump float;
 #endif
 varying vec2 v;
 uniform sampler2D texA, texB;
-uniform float uYawA, uYawB, uPitch, uFov, uAspect, uMix;
+uniform float uYawA, uYawB, uPitch, uFovA, uFovB, uAspect, uMix, uDip;
 const float PI = 3.14159265359;
 
 vec3 girar(vec3 d, float y){
@@ -1587,625 +747,501 @@ vec4 mirar(sampler2D t, vec3 d){
   float w = acos(clamp(d.y, -1.0, 1.0)) / PI;
   return texture2D(t, vec2(u, w));
 }
-void main(){
-  float k = tan(uFov * 0.5);
+vec3 rayo(float fov, float cp, float sp){
+  float k = tan(fov * 0.5);
   vec3 d = normalize(vec3(v.x * k * uAspect, v.y * k, -1.0));
+  return vec3(d.x, d.y*cp - d.z*sp, d.y*sp + d.z*cp);
+}
+void main(){
   float cp = cos(uPitch), sp = sin(uPitch);
-  d = vec3(d.x, d.y*cp - d.z*sp, d.y*sp + d.z*cp);
-  vec4 a = mirar(texA, girar(d, uYawA));
-  vec4 b = mirar(texB, girar(d, uYawB));
-  gl_FragColor = mix(a, b, uMix);
+  // Cada textura tiene su propio encuadre. Es lo que permite que, al pasar de un
+  // ambiente al otro, la imagen que dejás se AGRANDE (te acercás a lo que mirás)
+  // mientras la que llega se agranda también desde más chica (venías de atrás).
+  // Con un solo encuadre las dos escalan igual y se lee como un zoom, no como
+  // un paso.
+  vec4 a = mirar(texA, girar(rayo(uFovA, cp, sp), uYawA));
+  vec4 b = mirar(texB, girar(rayo(uFovB, cp, sp), uYawB));
+  gl_FragColor = mix(a, b, uMix) * vec4(vec3(uDip), 1.0);
 }`;
 
-      function compilar(tipo, src) {
-        const s = gl.createShader(tipo);
-        gl.shaderSource(s, src);
-        gl.compileShader(s);
-        if (!gl.getShaderParameter(s, gl.COMPILE_STATUS))
-          console.error(gl.getShaderInfoLog(s));
-        return s;
-      }
-      const prog = gl.createProgram();
-      gl.attachShader(prog, compilar(gl.VERTEX_SHADER, VS));
-      gl.attachShader(prog, compilar(gl.FRAGMENT_SHADER, FS));
-      gl.linkProgram(prog);
-      gl.useProgram(prog);
-      {
-        const buf = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-        gl.bufferData(
-          gl.ARRAY_BUFFER,
-          new Float32Array([-1, -1, 3, -1, -1, 3]),
-          gl.STATIC_DRAW,
-        );
-        const loc = gl.getAttribLocation(prog, "p");
-        gl.enableVertexAttribArray(loc);
-        gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-      }
-      const U = {};
-      [
-        "texA",
-        "texB",
-        "uYawA",
-        "uYawB",
-        "uPitch",
-        "uFov",
-        "uAspect",
-        "uMix",
-      ].forEach((n) => (U[n] = gl.getUniformLocation(prog, n)));
-      gl.uniform1i(U.texA, 0);
-      gl.uniform1i(U.texB, 1);
+function compilar(tipo, src){
+  const s = gl.createShader(tipo);
+  gl.shaderSource(s, src); gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) console.error(gl.getShaderInfoLog(s));
+  return s;
+}
+const prog = gl.createProgram();
+gl.attachShader(prog, compilar(gl.VERTEX_SHADER, VS));
+gl.attachShader(prog, compilar(gl.FRAGMENT_SHADER, FS));
+gl.linkProgram(prog); gl.useProgram(prog);
+{
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 3,-1, -1,3]), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(prog, "p");
+  gl.enableVertexAttribArray(loc);
+  gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+}
+const U = {};
+["texA","texB","uYawA","uYawB","uPitch","uFovA","uFovB","uAspect","uMix","uDip"]
+  .forEach(n => U[n] = gl.getUniformLocation(prog, n));
+gl.uniform1i(U.texA, 0); gl.uniform1i(U.texB, 1);
 
-      /* CLAMP_TO_EDGE y sin mipmaps: es lo único que WebGL 1 acepta cuando el ancho
+/* CLAMP_TO_EDGE y sin mipmaps: es lo único que WebGL 1 acepta cuando el ancho
    de la imagen no es potencia de dos (2560, 3072, 6000…). Con REPEAT la textura
    queda incompleta y el panorama se ve negro. */
-      function crearTextura(img) {
-        const t = gl.createTexture();
-        // Se sube por la unidad 2, nunca por la 0 ni la 1. Antes esto usaba la 0: cada
-        // panorama que terminaba de bajar en segundo plano se quedaba enganchado en la
-        // unidad que está en pantalla, y el visor mostraba el ambiente equivocado hasta
-        // el siguiente salto. Con conexión rápida casi no se notaba; con conexión lenta
-        // era el error visible.
-        gl.activeTexture(gl.TEXTURE2);
-        gl.bindTexture(gl.TEXTURE_2D, t);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, img);
-        return t;
-      }
+function crearTextura(img){
+  const t = gl.createTexture();
+  // Se sube por la unidad 2, nunca por la 0 ni la 1. Antes esto usaba la 0: cada
+  // panorama que terminaba de bajar en segundo plano se quedaba enganchado en la
+  // unidad que está en pantalla, y el visor mostraba el ambiente equivocado hasta
+  // el siguiente salto. Con conexión rápida casi no se notaba; con conexión lenta
+  // era el error visible.
+  gl.activeTexture(gl.TEXTURE2);
+  gl.bindTexture(gl.TEXTURE_2D, t);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, img);
+  return t;
+}
 
-      /* ===========================================================================
+/* ===========================================================================
    4. Estado
    =========================================================================== */
-      const FOV_BASE = 1.22,
-        FOV_MIN = 0.55,
-        FOV_MAX = 1.75;
-      let actual = null; // id de escena
-      let unidad = "mono";
-      let psi = 0; // rumbo del mundo, radianes
-      let pitch = 0;
-      let fov = FOV_BASE;
-      let mezcla = 0; // 0 = textura A, 1 = textura B
-      let giroA = 0,
-        giroB = 0; // giro de render de cada textura, radianes
-      let escA = null,
-        escB = null; // qué escena hay en cada unidad de textura
-      let viaje = null; // animación en curso
-      let inercia = 0;
-      const texturas = {},
-        imagenes = {};
+const FOV_BASE = 1.22, FOV_MIN = 0.55, FOV_MAX = 1.75;
+// Cuánto puede alejarse el rumbo de llegada del encuadre elegido al renderizar.
+// Subilo si querés que se respete siempre la dirección de la caminata; bajalo
+// si preferís entrar siempre bien encuadrado.
+const LLEGADA_MAX = 55 * Math.PI / 180;
+let actual  = null;          // id de escena
+let unidad  = "mono";
+let psi     = 0;             // rumbo del mundo, radianes
+let pitch   = 0;
+let fov     = FOV_BASE;
+let mezcla  = 0;             // 0 = textura A, 1 = textura B
+let fovA    = FOV_BASE, fovB = FOV_BASE;   // encuadre de cada textura
+let atenua  = 1;            // leve bajón de luz en el medio del cruce
+let giroA   = 0, giroB = 0;  // giro de render de cada textura, radianes
+let escA    = null, escB = null;   // qué escena hay en cada unidad de textura
+let viaje   = null;          // animación en curso
+let inercia = 0;
+const texturas = {}, imagenes = {};
 
-      /* ===========================================================================
+/* ===========================================================================
    5. Dibujo
    =========================================================================== */
-      function redimensionar() {
-        const r = cv.getBoundingClientRect();
-        const dpr = Math.min(window.devicePixelRatio || 1, 2);
-        cv.width = Math.max(1, Math.round(r.width * dpr));
-        cv.height = Math.max(1, Math.round(r.height * dpr));
-        gl.viewport(0, 0, cv.width, cv.height);
-      }
-      window.addEventListener("resize", redimensionar);
+function redimensionar(){
+  const r = cv.getBoundingClientRect();
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  cv.width  = Math.max(1, Math.round(r.width  * dpr));
+  cv.height = Math.max(1, Math.round(r.height * dpr));
+  gl.viewport(0, 0, cv.width, cv.height);
+}
+window.addEventListener("resize", redimensionar);
 
-      /* Se reafirma el enganche en cada cuadro: es barato y deja el estado de WebGL a
+/* Se reafirma el enganche en cada cuadro: es barato y deja el estado de WebGL a
    prueba de cualquier otra cosa que toque una textura. */
-      function bindear() {
-        if (escA && texturas[escA]) {
-          gl.activeTexture(gl.TEXTURE0);
-          gl.bindTexture(gl.TEXTURE_2D, texturas[escA]);
-        }
-        if (escB && texturas[escB]) {
-          gl.activeTexture(gl.TEXTURE1);
-          gl.bindTexture(gl.TEXTURE_2D, texturas[escB]);
-        }
-      }
-      function dibujar() {
-        bindear();
-        gl.uniform1f(U.uYawA, -(psi + giroA));
-        gl.uniform1f(U.uYawB, -(psi + giroB));
-        gl.uniform1f(U.uPitch, pitch);
-        gl.uniform1f(U.uFov, fov);
-        gl.uniform1f(U.uAspect, cv.width / cv.height);
-        gl.uniform1f(U.uMix, mezcla);
-        gl.drawArrays(gl.TRIANGLES, 0, 3);
-      }
+function bindear(){
+  if (escA && texturas[escA]) { gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, texturas[escA]); }
+  if (escB && texturas[escB]) { gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, texturas[escB]); }
+}
+function dibujar(){
+  bindear();
+  gl.uniform1f(U.uYawA,  -(psi + giroA));
+  gl.uniform1f(U.uYawB,  -(psi + giroB));
+  gl.uniform1f(U.uPitch, pitch);
+  gl.uniform1f(U.uFovA,  viaje ? fovA : fov);
+  gl.uniform1f(U.uFovB,  viaje ? fovB : fov);
+  gl.uniform1f(U.uAspect, cv.width / cv.height);
+  gl.uniform1f(U.uMix,   mezcla);
+  gl.uniform1f(U.uDip,   atenua);
+  gl.drawArrays(gl.TRIANGLES, 0, 3);
+}
 
-      /* ===========================================================================
+/* ===========================================================================
    6. Hotspots
    =========================================================================== */
-      const hud = document.getElementById("hud");
-      let marcas = [];
+const hud = document.getElementById("hud");
+let marcas = [];
 
-      const SVG_FLECHA =
-        '<svg viewBox="0 0 24 24"><path d="M12 4v13M7 12l5 5 5-5"/></svg>';
-      const SVG_INFO =
-        '<svg viewBox="0 0 24 24"><path d="M12 11v5.5M12 7.4v.3"/><circle cx="12" cy="12" r="9.2"/></svg>';
+const SVG_FLECHA = '<svg viewBox="0 0 24 24"><path d="M12 4v13M7 12l5 5 5-5"/></svg>';
+const SVG_INFO   = '<svg viewBox="0 0 24 24"><path d="M12 11v5.5M12 7.4v.3"/><circle cx="12" cy="12" r="9.2"/></svg>';
 
-      function armarMarcas() {
-        marcas.forEach((m) => m.el.remove());
-        marcas = ESCENAS[actual].marcas.map((m) => {
-          const b = document.createElement("button");
-          b.className = "hs " + (m.tipo === "salto" ? "salto" : "dato");
-          b.innerHTML =
-            '<span class="dot">' +
-            (m.tipo === "salto" ? SVG_FLECHA : SVG_INFO) +
-            '</span><span class="lbl">' +
-            m.titulo +
-            "</span>";
-          b.setAttribute("aria-label", m.titulo);
-          b.addEventListener("click", () => {
-            if (m.tipo === "salto") irA(m.a, m.rumboLlegada);
-            else abrirTarjeta(m);
-          });
-          hud.appendChild(b);
-          return { el: b, m: m };
-        });
-        ubicarMarcas();
-      }
+function armarMarcas(){
+  marcas.forEach(m => m.el.remove());
+  marcas = ESCENAS[actual].marcas.map(m => {
+    const b = document.createElement("button");
+    b.className = "hs " + (m.tipo === "salto" ? "salto" : "dato");
+    b.innerHTML = '<span class="dot">' + (m.tipo === "salto" ? SVG_FLECHA : SVG_INFO) +
+                  '</span><span class="lbl">' + m.titulo + "</span>";
+    b.setAttribute("aria-label", m.titulo);
+    b.addEventListener("click", () => {
+      if (m.tipo === "salto") irA(m.a, m.rumboLlegada);
+      else abrirTarjeta(m);
+    });
+    hud.appendChild(b);
+    return {el:b, m:m};
+  });
+  ubicarMarcas();
+}
 
-      function ubicarMarcas() {
-        const w = cv.clientWidth,
-          h = cv.clientHeight;
-        const k = Math.tan(fov / 2),
-          asp = w / h;
-        const cp = Math.cos(-pitch),
-          sp = Math.sin(-pitch);
-        const pila = { izq: 0, der: 0 };
-        // La columna derecha arranca debajo de la ficha si está abierta, para que la
-        // salida no quede tapada por el panel de datos.
-        const fi = document.getElementById("ficha");
-        const tope = { izq: h * 0.56, der: h * 0.56 };
-        const tapa = [];
-        if (!fi.classList.contains("off")) {
-          const r = fi.getBoundingClientRect();
-          tapa.push(r);
-          if (window.innerWidth > 860)
-            tope.der = Math.max(tope.der, r.bottom + 26);
-        }
-        if (tarjeta.classList.contains("on"))
-          tapa.push(tarjeta.getBoundingClientRect());
-        // Un hotspot debajo de un panel abierto no se puede tocar: mejor no dibujarlo.
-        const tapado = (px, py) =>
-          tapa.some(
-            (r) =>
-              px > r.left - 24 &&
-              px < r.right + 24 &&
-              py > r.top - 24 &&
-              py < r.bottom + 24,
-          );
-        marcas.forEach((s) => {
-          // Ángulo relativo: el giro de render se cancela solo, porque tanto la marca
-          // como la cámara están expresadas en rumbo del mundo.
-          const a = s.m.psi - psi,
-            e = s.m.el,
-            ce = Math.cos(e);
-          let d = [Math.sin(a) * ce, Math.sin(e), -Math.cos(a) * ce];
-          d = [d[0], d[1] * cp - d[2] * sp, d[1] * sp + d[2] * cp];
+function ubicarMarcas(){
+  const w = cv.clientWidth, h = cv.clientHeight;
+  const k = Math.tan(fov / 2), asp = w / h;
+  const cp = Math.cos(-pitch), sp = Math.sin(-pitch);
+  const pila = {izq:0, der:0};
+  // La columna derecha arranca debajo de la ficha si está abierta, para que la
+  // salida no quede tapada por el panel de datos.
+  const fi = document.getElementById("ficha");
+  const tope = {izq: h * 0.56, der: h * 0.56};
+  const tapa = [];
+  if (!fi.classList.contains("off")) {
+    const r = fi.getBoundingClientRect();
+    tapa.push(r);
+    if (window.innerWidth > 860) tope.der = Math.max(tope.der, r.bottom + 26);
+  }
+  if (tarjeta.classList.contains("on")) tapa.push(tarjeta.getBoundingClientRect());
+  // Un hotspot debajo de un panel abierto no se puede tocar: mejor no dibujarlo.
+  const tapado = (px, py) => tapa.some(r =>
+    px > r.left - 24 && px < r.right + 24 && py > r.top - 24 && py < r.bottom + 24);
+  marcas.forEach(s => {
+    // Ángulo relativo: el giro de render se cancela solo, porque tanto la marca
+    // como la cámara están expresadas en rumbo del mundo.
+    const a = s.m.psi - psi, e = s.m.el, ce = Math.cos(e);
+    let d = [Math.sin(a)*ce, Math.sin(e), -Math.cos(a)*ce];
+    d = [d[0], d[1]*cp - d[2]*sp, d[1]*sp + d[2]*cp];
 
-          let dentro = d[2] < -0.06,
-            x = 0,
-            y = 0;
-          if (dentro) {
-            x = d[0] / -d[2] / (k * asp);
-            y = d[1] / -d[2] / k;
-            dentro = Math.abs(x) <= 1.06 && Math.abs(y) <= 1.06;
-          }
-          if (s.m.tipo === "salto")
-            s.el.dataset.listo = texturas[s.m.a] ? "1" : "0";
+    let dentro = d[2] < -0.06, x = 0, y = 0;
+    if (dentro) {
+      x = (d[0] / -d[2]) / (k * asp);
+      y = (d[1] / -d[2]) / k;
+      dentro = Math.abs(x) <= 1.06 && Math.abs(y) <= 1.06;
+    }
+    if (s.m.tipo === "salto") s.el.dataset.listo = texturas[s.m.a] ? "1" : "0";
 
-          if (dentro) {
-            const px = (x * 0.5 + 0.5) * w,
-              py = (0.5 - y * 0.5) * h;
-            if (tapado(px, py)) {
-              s.el.style.display = "none";
-              return;
-            }
-            s.el.classList.remove("borde");
-            s.el.removeAttribute("data-lado");
-            s.el.style.display = "flex";
-            s.el.style.left = px + "px";
-            s.el.style.top = py + "px";
-            return;
-          }
-          // Fuera de cuadro: los datos se esconden, pero una salida nunca se pierde.
-          // Queda pegada al borde hacia el que hay que girar, así el balcón —que se
-          // renderizó mirando al vacío— no parece un callejón sin salida.
-          if (s.m.tipo !== "salto") {
-            s.el.style.display = "none";
-            return;
-          }
-          const lado = normAng(a) >= 0 ? "der" : "izq";
-          s.el.classList.add("borde");
-          s.el.dataset.lado = lado;
-          s.el.style.display = "flex";
-          s.el.style.left = lado === "der" ? w - 10 + "px" : "10px";
-          s.el.style.top = tope[lado] + pila[lado] * 52 + "px";
-          pila[lado]++;
-        });
-      }
+    if (dentro) {
+      const px = (x * 0.5 + 0.5) * w, py = (0.5 - y * 0.5) * h;
+      if (tapado(px, py)) { s.el.style.display = "none"; return; }
+      s.el.classList.remove("borde");
+      s.el.removeAttribute("data-lado");
+      s.el.style.display = "flex";
+      s.el.style.left = px + "px";
+      s.el.style.top  = py + "px";
+      return;
+    }
+    // Fuera de cuadro: los datos se esconden, pero una salida nunca se pierde.
+    // Queda pegada al borde hacia el que hay que girar, así el balcón —que se
+    // renderizó mirando al vacío— no parece un callejón sin salida.
+    if (s.m.tipo !== "salto") { s.el.style.display = "none"; return; }
+    const lado = normAng(a) >= 0 ? "der" : "izq";
+    s.el.classList.add("borde");
+    s.el.dataset.lado = lado;
+    s.el.style.display = "flex";
+    s.el.style.left = lado === "der" ? (w - 10) + "px" : "10px";
+    s.el.style.top  = (tope[lado] + pila[lado] * 52) + "px";
+    pila[lado]++;
+  });
+}
 
-      /* ===========================================================================
+/* ===========================================================================
    7. Plano
    =========================================================================== */
-      let planoAct = null; // qué unidad está dibujada ahora en los planos
-      function ppx(P, x) {
-        return ((x - P.xmin) / (P.xmax - P.xmin)) * P.px;
-      }
-      function ppy(P, y) {
-        return ((P.ymax - y) / (P.ymax - P.ymin)) * P.py;
-      }
+let planoAct = null;   // qué unidad está dibujada ahora en los planos
+function ppx(P, x){ return (x - P.xmin) / (P.xmax - P.xmin) * P.px; }
+function ppy(P, y){ return (P.ymax - y) / (P.ymax - P.ymin) * P.py; }
 
-      /* Hay un plano por unidad y se dibuja dos veces con el mismo código: chico en la
+/* Hay un plano por unidad y se dibuja dos veces con el mismo código: chico en la
    esquina y grande en la ventana ampliada. Cada plano trae su propio recorte en
    metros, así que el mismo par (x, y) del modelo cae donde tiene que caer en los
    dos, sin ajustar nada a mano. */
-      function svgPlano(P, u, grande) {
-        const r = P.py * (grande ? 0.02 : 0.028);
-        const fs = P.py * 0.024;
-        let s = '<g class="conoG"></g>';
-        UNIDADES[u].orden.forEach((k) => {
-          const e = ESCENAS[k];
-          const x = ppx(P, e.pos[0]),
-            y = ppy(P, e.pos[1]);
-          s +=
-            `<g class="pinG" data-k="${k}" role="button" tabindex="0" aria-label="${e.nombre}">` +
-            `<circle class="pin" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}"/>` +
-            // El rótulo va del lado que tenga lugar: si el pin está sobre el borde
-            // derecho, el texto sale de la hoja.
-            (grande
-              ? x > P.px * 0.58
-                ? `<text class="etq" text-anchor="end" x="${(x - r * 1.7).toFixed(1)}" y="${(y + fs * 0.36).toFixed(1)}" font-size="${fs.toFixed(1)}">${e.nombre}</text>`
-                : `<text class="etq" x="${(x + r * 1.7).toFixed(1)}" y="${(y + fs * 0.36).toFixed(1)}" font-size="${fs.toFixed(1)}">${e.nombre}</text>`
-              : "") +
-            `<title>${e.nombre}</title></g>`;
-        });
-        return s;
-      }
-      function conectarPines(svg, alTocar) {
-        svg.querySelectorAll(".pinG").forEach((g) => {
-          const ir = (ev) => {
-            ev.stopPropagation();
-            irA(g.dataset.k);
-            if (alTocar) alTocar();
-          };
-          g.addEventListener("click", ir);
-          g.addEventListener("keydown", (ev) => {
-            if (ev.key === "Enter" || ev.key === " ") {
-              ev.preventDefault();
-              ir(ev);
-            }
-          });
-        });
-      }
-      function armarPlano(u) {
-        if (u === planoAct) return;
-        planoAct = u;
-        const P = PLANOS[u],
-          nom = "Plano · " + UNIDADES[u].nombre;
-        [
-          ["planoImg", "planoSvg", false],
-          ["pgImg", "pgSvg", true],
-        ].forEach(([iid, sid, grande]) => {
-          const img = document.getElementById(iid),
-            svg = document.getElementById(sid);
-          img.src = P.archivo;
-          img.alt = nom;
-          svg.setAttribute("viewBox", `0 0 ${P.px} ${P.py}`);
-          svg.innerHTML = svgPlano(P, u, grande);
-          conectarPines(svg, grande ? cerrarPlanoGrande : null);
-        });
-        document.getElementById("pgTit").textContent = UNIDADES[u].nombre;
-        document.getElementById("pgSub").textContent = UNIDADES[u].resumen;
-      }
-      function pintarPlano() {
-        const P = PLANOS[unidad];
-        if (!P || planoAct !== unidad) return;
-        const p = ESCENAS[actual].pos;
-        const abre = Math.atan(
-          Math.tan(fov / 2) * (cv.clientWidth / Math.max(1, cv.clientHeight)),
-        );
-        const R = Math.max(P.px, P.py) * 0.17;
-        const cx = ppx(P, p[0]),
-          cy = ppy(P, p[1]);
-        const pt = (t) =>
-          `${(cx + Math.sin(t) * R).toFixed(1)},${(cy - Math.cos(t) * R).toFixed(1)}`;
-        const cono = `<path class="cono" d="M${cx.toFixed(1)},${cy.toFixed(1)} L${pt(psi - abre)} A${R},${R} 0 0,1 ${pt(psi + abre)} Z"/>`;
-        document
-          .querySelectorAll(".conoG")
-          .forEach((g) => (g.innerHTML = cono));
-        document.querySelectorAll(".pinG").forEach((el) => {
-          const on = el.dataset.k === actual;
-          el.querySelector(".pin").classList.toggle("on", on);
-          const t = el.querySelector(".etq");
-          if (t) t.classList.toggle("on", on);
-        });
-      }
+function svgPlano(P, u, grande){
+  const r  = P.py * (grande ? 0.020 : 0.028);
+  const fs = P.py * 0.024;
+  let s = '<g class="conoG"></g>';
+  UNIDADES[u].orden.forEach(k => {
+    const e = ESCENAS[k];
+    const x = ppx(P, e.pos[0]), y = ppy(P, e.pos[1]);
+    s += `<g class="pinG" data-k="${k}" role="button" tabindex="0" aria-label="${e.nombre}">` +
+         `<circle class="pin" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}"/>` +
+         // El rótulo va del lado que tenga lugar: si el pin está sobre el borde
+         // derecho, el texto sale de la hoja.
+         (grande ? (x > P.px * 0.58
+             ? `<text class="etq" text-anchor="end" x="${(x - r*1.7).toFixed(1)}" y="${(y + fs*0.36).toFixed(1)}" font-size="${fs.toFixed(1)}">${e.nombre}</text>`
+             : `<text class="etq" x="${(x + r*1.7).toFixed(1)}" y="${(y + fs*0.36).toFixed(1)}" font-size="${fs.toFixed(1)}">${e.nombre}</text>`) : "") +
+         `<title>${e.nombre}</title></g>`;
+  });
+  return s;
+}
+function conectarPines(svg, alTocar){
+  svg.querySelectorAll(".pinG").forEach(g => {
+    const ir = ev => { ev.stopPropagation(); irA(g.dataset.k); if (alTocar) alTocar(); };
+    g.addEventListener("click", ir);
+    g.addEventListener("keydown", ev => {
+      if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); ir(ev); }
+    });
+  });
+}
+function armarPlano(u){
+  if (u === planoAct) return;
+  planoAct = u;
+  const P = PLANOS[u], nom = "Plano · " + UNIDADES[u].nombre;
+  [["planoImg", "planoSvg", false], ["pgImg", "pgSvg", true]].forEach(([iid, sid, grande]) => {
+    const img = document.getElementById(iid), svg = document.getElementById(sid);
+    img.src = P.archivo; img.alt = nom;
+    svg.setAttribute("viewBox", `0 0 ${P.px} ${P.py}`);
+    svg.innerHTML = svgPlano(P, u, grande);
+    conectarPines(svg, grande ? cerrarPlanoGrande : null);
+  });
+  document.getElementById("pgTit").textContent = UNIDADES[u].nombre;
+  document.getElementById("pgSub").textContent = UNIDADES[u].resumen;
+}
+function pintarPlano(){
+  const P = PLANOS[unidad];
+  if (!P || planoAct !== unidad) return;
+  const p = ESCENAS[actual].pos;
+  const abre = Math.atan(Math.tan(fov / 2) * (cv.clientWidth / Math.max(1, cv.clientHeight)));
+  const R = Math.max(P.px, P.py) * 0.17;
+  const cx = ppx(P, p[0]), cy = ppy(P, p[1]);
+  const pt = t => `${(cx + Math.sin(t)*R).toFixed(1)},${(cy - Math.cos(t)*R).toFixed(1)}`;
+  const cono = `<path class="cono" d="M${cx.toFixed(1)},${cy.toFixed(1)} L${pt(psi-abre)} A${R},${R} 0 0,1 ${pt(psi+abre)} Z"/>`;
+  document.querySelectorAll(".conoG").forEach(g => g.innerHTML = cono);
+  document.querySelectorAll(".pinG").forEach(el => {
+    const on = el.dataset.k === actual;
+    el.querySelector(".pin").classList.toggle("on", on);
+    const t = el.querySelector(".etq"); if (t) t.classList.toggle("on", on);
+  });
+}
 
-      /* ---------- la ventana con el plano grande ---------- */
-      const planoGrande = document.getElementById("planoGrande");
-      function abrirPlanoGrande() {
-        cerrarTarjeta();
-        planoGrande.classList.remove("off");
-      }
-      function cerrarPlanoGrande() {
-        planoGrande.classList.add("off");
-      }
-      document
-        .getElementById("plano")
-        .addEventListener("click", abrirPlanoGrande);
-      document
-        .getElementById("btnPlano")
-        .addEventListener("click", abrirPlanoGrande);
-      document
-        .getElementById("pgX")
-        .addEventListener("click", cerrarPlanoGrande);
-      planoGrande.addEventListener("click", (e) => {
-        if (e.target === planoGrande) cerrarPlanoGrande();
-      });
+/* ---------- la ventana con el plano grande ---------- */
+const planoGrande = document.getElementById("planoGrande");
+function abrirPlanoGrande(){ cerrarTarjeta(); planoGrande.classList.remove("off"); }
+function cerrarPlanoGrande(){ planoGrande.classList.add("off"); }
+document.getElementById("plano").addEventListener("click", abrirPlanoGrande);
+document.getElementById("btnPlano").addEventListener("click", abrirPlanoGrande);
+document.getElementById("pgX").addEventListener("click", cerrarPlanoGrande);
+planoGrande.addEventListener("click", e => { if (e.target === planoGrande) cerrarPlanoGrande(); });
 
-      /* ===========================================================================
+/* ===========================================================================
    8. Interfaz: unidades, ambientes, ficha, tarjeta
    =========================================================================== */
-      const elUnidades = document.getElementById("unidades");
-      Object.keys(UNIDADES).forEach((u) => {
-        const b = document.createElement("button");
-        b.textContent = UNIDADES[u].nombre;
-        b.dataset.u = u;
-        b.addEventListener("click", () => {
-          if (u === unidad) return;
-          const destino = UNIDADES[u].inicio;
-          irA(destino);
-        });
-        elUnidades.appendChild(b);
-      });
+const elUnidades = document.getElementById("unidades");
+Object.keys(UNIDADES).forEach(u => {
+  const b = document.createElement("button");
+  b.textContent = UNIDADES[u].nombre; b.dataset.u = u;
+  b.addEventListener("click", () => {
+    if (u === unidad) return;
+    const destino = UNIDADES[u].inicio;
+    irA(destino);
+  });
+  elUnidades.appendChild(b);
+});
 
-      const elAmbientes = document.getElementById("ambientes");
-      function armarAmbientes() {
-        elAmbientes.innerHTML = "";
-        UNIDADES[unidad].orden.forEach((k) => {
-          const b = document.createElement("button");
-          b.className = "amb";
-          b.textContent = ESCENAS[k].nombre;
-          b.dataset.k = k;
-          b.setAttribute("aria-current", k === actual);
-          b.addEventListener("click", () => irA(k));
-          elAmbientes.appendChild(b);
-        });
-      }
-      function marcarInterfaz() {
-        elUnidades
-          .querySelectorAll("button")
-          .forEach((b) =>
-            b.setAttribute("aria-current", b.dataset.u === unidad),
-          );
-        elAmbientes
-          .querySelectorAll(".amb")
-          .forEach((b) =>
-            b.setAttribute("aria-current", b.dataset.k === actual),
-          );
-      }
+const elAmbientes = document.getElementById("ambientes");
+function armarAmbientes(){
+  elAmbientes.innerHTML = "";
+  UNIDADES[unidad].orden.forEach(k => {
+    const b = document.createElement("button");
+    b.className = "amb"; b.textContent = ESCENAS[k].nombre; b.dataset.k = k;
+    b.setAttribute("aria-current", k === actual);
+    b.addEventListener("click", () => irA(k));
+    elAmbientes.appendChild(b);
+  });
+}
+function marcarInterfaz(){
+  elUnidades.querySelectorAll("button")
+    .forEach(b => b.setAttribute("aria-current", b.dataset.u === unidad));
+  elAmbientes.querySelectorAll(".amb")
+    .forEach(b => b.setAttribute("aria-current", b.dataset.k === actual));
+}
 
-      function pintarFicha() {
-        const u = UNIDADES[unidad];
-        document.getElementById("fichaT").textContent = u.nombre;
-        document.getElementById("fichaS").textContent = u.resumen;
-        document.getElementById("fichaD").innerHTML = u.datos
-          .map(
-            (d) => `<div class="fila"><dt>${d[0]}</dt><dd>${d[1]}</dd></div>`,
-          )
-          .join("");
-        document.getElementById("btnContacto").href =
-          "https://wa.me/" +
-          MARCA.whatsapp +
-          "?text=" +
-          encodeURIComponent(
-            MARCA.mensaje +
-              " " +
-              u.nombre.toLowerCase() +
-              " (" +
-              MARCA.piso +
-              ").",
-          );
-      }
-      document
-        .getElementById("btnFicha")
-        .addEventListener("click", () =>
-          document.getElementById("ficha").classList.toggle("off"),
-        );
+function pintarFicha(){
+  const u = UNIDADES[unidad];
+  document.getElementById("fichaT").textContent = u.nombre;
+  document.getElementById("fichaS").textContent = u.resumen;
+  document.getElementById("fichaD").innerHTML = u.datos
+    .map(d => `<div class="fila"><dt>${d[0]}</dt><dd>${d[1]}</dd></div>`).join("");
+  document.getElementById("btnContacto").href =
+    "https://wa.me/" + MARCA.whatsapp + "?text=" +
+    encodeURIComponent(MARCA.mensaje + " " + u.nombre.toLowerCase() + " (" + MARCA.piso + ").");
+}
+document.getElementById("btnFicha")
+  .addEventListener("click", () => document.getElementById("ficha").classList.toggle("off"));
 
-      const tarjeta = document.getElementById("tarjeta");
-      function abrirTarjeta(m) {
-        document.getElementById("tarjetaT").textContent = m.titulo;
-        document.getElementById("tarjetaP").textContent = m.texto;
-        tarjeta.classList.add("on");
-      }
-      function cerrarTarjeta() {
-        tarjeta.classList.remove("on");
-      }
-      document
-        .getElementById("tarjetaX")
-        .addEventListener("click", cerrarTarjeta);
+const tarjeta = document.getElementById("tarjeta");
+function abrirTarjeta(m){
+  document.getElementById("tarjetaT").textContent = m.titulo;
+  document.getElementById("tarjetaP").textContent = m.texto;
+  tarjeta.classList.add("on");
+}
+function cerrarTarjeta(){ tarjeta.classList.remove("on"); }
+document.getElementById("tarjetaX").addEventListener("click", cerrarTarjeta);
 
-      /* ===========================================================================
+/* ===========================================================================
    9. El viaje entre panoramas
    ===========================================================================
-   Tres cosas pasan a la vez y por eso se lee como un desplazamiento y no como
-   un corte: la vista GIRA hasta la dirección en la que se camina, el encuadre
-   se CIERRA (como acercarse a la puerta) y las dos imágenes se CRUZAN alineadas
-   al mismo rumbo real. Al llegar, el encuadre se vuelve a abrir: eso es lo que
-   da la sensación de que el ambiente nuevo se despliega alrededor.
+   Un paso real tiene dos tiempos: primero girás la cabeza hacia donde vas, y
+   recién después caminás. Mezclar las dos cosas es lo que hacía que la
+   transición se sintiera falsa —la imagen giraba MIENTRAS se fundía, y el ojo
+   no puede seguir las dos cosas—. Acá van separadas:
+
+     1. GIRO   corto, sin fundido. Sólo si hay que girar más de 25°.
+     2. PASO   sin girar (o casi). Las dos imágenes se agrandan a la vez, con
+               encuadres distintos, y se cruzan en el medio.
+
+   Lo del punto 2 es la clave y necesita los dos encuadres del shader. Cuando
+   caminás de A hacia B, TODO se agranda de forma continua: lo que ves desde A
+   se acerca, y lo de B —que venías viendo desde más lejos— también se acerca.
+   Si las dos imágenes usan el mismo encuadre, escalan igual y se lee como un
+   zoom de la pantalla. Con encuadres distintos se lee como avanzar.
+
+   El rumbo de llegada tampoco es libre: se usa el de viaje sólo si cae cerca
+   del encuadre con que se renderizó esa cámara. Si no, se entra por el encuadre
+   bueno. Caminar hacia un lado no justifica llegar mirando una pared.
    =========================================================================== */
-      const girando = document.getElementById("girando");
+const girando = document.getElementById("girando");
 
-      function irA(k, rumboLlegada) {
-        if (!ESCENAS[k] || k === actual || viaje) return;
-        if (!texturas[k]) {
-          // todavía no bajó: esperar mostrando el spinner
-          girando.classList.add("on");
-          cargarUna(k).then(() => {
-            girando.classList.remove("on");
-            irA(k, rumboLlegada);
-          });
-          return;
-        }
-        cerrarTarjeta();
-        const desde = actual;
-        // "Caminar" sólo tiene sentido entre dos puntos contiguos. Un salto del plano
-        // a la otra unidad no es un paso: ahí conviene entrar con el encuadre elegido
-        // al renderizar, que es el que muestra bien el ambiente.
-        const salto =
-          !!desde && ESCENAS[desde].saltos.some((x) => idSalto(x) === k);
+function irA(k, rumboLlegada){
+  if (!ESCENAS[k] || k === actual || viaje) return;
+  if (!texturas[k]) {                       // todavía no bajó: esperar mostrando el spinner
+    girando.classList.add("on");
+    cargarUna(k).then(() => { girando.classList.remove("on"); if (ESCENAS[k]) irA(k, rumboLlegada); });
+    return;
+  }
+  cerrarTarjeta();
+  const desde = actual;
+  // "Caminar" sólo tiene sentido entre dos puntos contiguos. Un salto del plano
+  // a la otra unidad no es un paso: ahí conviene entrar con el encuadre elegido
+  // al renderizar, que es el que muestra bien el ambiente.
+  const salto = !!desde && ESCENAS[desde].saltos.some(x => idSalto(x) === k);
 
-        let psi1 = rumboLlegada;
-        if (psi1 === undefined) {
-          psi1 = salto
-            ? rumbo(ESCENAS[desde].pos, ESCENAS[k].pos)
-            : ESCENAS[k].rumbo0;
-        }
+  const rumboViaje = salto ? rumbo(ESCENAS[desde].pos, ESCENAS[k].pos) : null;
 
-        escB = k;
-        giroB = ESCENAS[k].giro * RAD;
-        bindear();
+  // Rumbo de llegada. El de viaje sólo se respeta si no aleja demasiado del
+  // encuadre con que se renderizó la cámara: más allá de LLEGADA_MAX se entra
+  // mirando una pared, que es lo que se sentía como "me deja en cualquier lado".
+  let psi1 = rumboLlegada;
+  if (psi1 === undefined) {
+    const bueno = ESCENAS[k].rumbo0;
+    if (rumboViaje === null) psi1 = bueno;
+    else psi1 = Math.abs(normAng(rumboViaje - bueno)) <= LLEGADA_MAX ? rumboViaje : bueno;
+  }
 
-        actual = k;
-        unidad = ESCENAS[k].unidad;
-        armarPlano(unidad);
-        armarAmbientes();
-        marcarInterfaz();
-        pintarFicha();
+  escB = k; giroB = ESCENAS[k].giro * RAD; bindear();
 
-        const t0 = performance.now(),
-          D = salto ? 900 : 620;
-        const psi0 = psi,
-          dpsi = normAng(psi1 - psi0);
-        const pitch0 = pitch,
-          fov0 = fov;
-        const cierre = salto ? 0.58 : 0.8; // cuánto se acerca durante el cruce
-        inercia = 0;
-        viaje = true;
+  actual = k;
+  unidad = ESCENAS[k].unidad;
+  armarPlano(unidad); armarAmbientes(); marcarInterfaz(); pintarFicha();
 
-        (function paso() {
-          const t = Math.min(1, (performance.now() - t0) / D);
-          const e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; // suave en los dos extremos
-          mezcla = e;
-          psi = psi0 + dpsi * e;
-          pitch = pitch0 * (1 - e);
-          fov = fov0 + (FOV_BASE * cierre - fov0) * e;
-          if (t < 1) {
-            requestAnimationFrame(paso);
-            return;
-          }
+  inercia = 0; viaje = true;
+  const pitch0 = pitch;
 
-          // El destino pasa a ser la textura A y se abre el encuadre.
-          escA = k;
-          giroA = giroB;
-          mezcla = 0;
-          bindear();
-          armarMarcas();
-          const s0 = performance.now(),
-            f0 = fov,
-            DS = 420;
-          (function salida() {
-            const t = Math.min(1, (performance.now() - s0) / DS);
-            const e = 1 - Math.pow(1 - t, 3);
-            fov = f0 + (FOV_BASE - f0) * e;
-            if (t < 1) requestAnimationFrame(salida);
-            else {
-              fov = FOV_BASE;
-              viaje = null;
-            }
-          })();
-        })();
-      }
+  // ---- tiempo 1: girar hacia donde se camina, sin fundido ----
+  const psiGiro = (rumboViaje !== null) ? rumboViaje : psi1;
+  const dGiro = normAng(psiGiro - psi);
+  const DG = Math.abs(dGiro) < 25 * RAD ? 0
+           : Math.min(420, 180 + Math.abs(dGiro) / RAD * 1.8);
 
-      /* ===========================================================================
+  function tiempo2(){
+    // ---- tiempo 2: el paso ----
+    const t0 = performance.now();
+    const D  = salto ? 1050 : 700;
+    const p0 = psi, dp = normAng(psi1 - psi);
+    const pi0 = pitch;
+    fovA = fov; fovB = fov * (salto ? 1.30 : 1.12);
+    const fA = fov * (salto ? 0.66 : 0.86), fB = fov;
+    (function paso(){
+      const t = Math.min(1, (performance.now() - t0) / D);
+      // smootherstep: arranca y termina con velocidad Y aceleración nulas, que
+      // es lo que hace que no se note dónde empieza ni dónde termina
+      const e = t*t*t*(t*(t*6 - 15) + 10);
+      mezcla = e;
+      psi    = p0 + dp * e;
+      pitch  = pi0 * (1 - e);
+      fovA   = fov + (fA - fov) * e;
+      fovB   = fov * (salto ? 1.30 : 1.12) + (fB - fov * (salto ? 1.30 : 1.12)) * e;
+      // un bajón de luz mínimo en el medio: tapa el fantasma del cruce
+      atenua = 1 - 0.06 * Math.sin(Math.PI * e);
+      if (t < 1) { requestAnimationFrame(paso); return; }
+      escA = k; giroA = giroB; mezcla = 0; atenua = 1;
+      fov = fovA = fovB = FOV_BASE;
+      psi = normAng(psi);          // que no crezca indefinidamente entre saltos
+      bindear(); armarMarcas();
+      viaje = null;
+    })();
+  }
+
+  if (DG === 0) { tiempo2(); return; }
+  const g0 = performance.now(), pg = psi;
+  (function girar(){
+    const t = Math.min(1, (performance.now() - g0) / DG);
+    const e = t*t*t*(t*(t*6 - 15) + 10);
+    psi = pg + dGiro * e;
+    pitch = pitch0 * (1 - e * 0.5);
+    if (t < 1) requestAnimationFrame(girar); else tiempo2();
+  })();
+}
+
+/* ===========================================================================
    10. Controles
    =========================================================================== */
-      let arrastre = null;
-      cv.addEventListener("pointerdown", (e) => {
-        arrastre = { x: e.clientX, y: e.clientY, psi: psi, pitch: pitch };
-        inercia = 0;
-        cv.setPointerCapture(e.pointerId);
-        cv.classList.add("dragging");
-        document.getElementById("ayuda").classList.add("off");
-      });
-      cv.addEventListener("pointermove", (e) => {
-        if (!arrastre) return;
-        const s = (fov / Math.max(1, cv.clientHeight)) * 1.05;
-        const np = arrastre.psi - (e.clientX - arrastre.x) * s; // arrastrar a la derecha gira la vista a la izquierda
-        inercia = np - psi;
-        psi = np;
-        pitch = Math.max(
-          -1.3,
-          Math.min(1.3, arrastre.pitch + (e.clientY - arrastre.y) * s),
-        );
-      });
-      function soltar() {
-        if (arrastre) {
-          arrastre = null;
-          cv.classList.remove("dragging");
-        }
-      }
-      cv.addEventListener("pointerup", soltar);
-      cv.addEventListener("pointercancel", soltar);
-      cv.addEventListener(
-        "wheel",
-        (e) => {
-          e.preventDefault();
-          if (viaje) return;
-          fov = Math.max(FOV_MIN, Math.min(FOV_MAX, fov + e.deltaY * 0.0016));
-        },
-        { passive: false },
-      );
+let arrastre = null;
+cv.addEventListener("pointerdown", e => {
+  arrastre = {x:e.clientX, y:e.clientY, psi:psi, pitch:pitch};
+  inercia = 0;
+  cv.setPointerCapture(e.pointerId);
+  cv.classList.add("dragging");
+  document.getElementById("ayuda").classList.add("off");
+});
+cv.addEventListener("pointermove", e => {
+  if (!arrastre) return;
+  const s = fov / Math.max(1, cv.clientHeight) * 1.05;
+  const np = arrastre.psi - (e.clientX - arrastre.x) * s;   // arrastrar a la derecha gira la vista a la izquierda
+  inercia = np - psi; psi = np;
+  pitch = Math.max(-1.3, Math.min(1.3, arrastre.pitch + (e.clientY - arrastre.y) * s));
+});
+function soltar(){ if (arrastre) { arrastre = null; cv.classList.remove("dragging"); } }
+cv.addEventListener("pointerup", soltar);
+cv.addEventListener("pointercancel", soltar);
+cv.addEventListener("wheel", e => {
+  e.preventDefault();
+  if (viaje) return;
+  fov = Math.max(FOV_MIN, Math.min(FOV_MAX, fov + e.deltaY * 0.0016));
+}, {passive:false});
 
-      cv.tabIndex = 0;
-      cv.addEventListener("keydown", (e) => {
-        const k = {
-          ArrowLeft: [-0.06, 0],
-          ArrowRight: [0.06, 0],
-          ArrowUp: [0, 0.045],
-          ArrowDown: [0, -0.045],
-        }[e.key];
-        if (!k) return;
-        e.preventDefault();
-        psi += k[0];
-        pitch = Math.max(-1.3, Math.min(1.3, pitch + k[1]));
-      });
-      document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") {
-          if (!planoGrande.classList.contains("off")) cerrarPlanoGrande();
-          else cerrarTarjeta();
-          return;
-        }
-        // E abre el modo edición, salvo que estés escribiendo en algún lado
-        if (
-          (e.key === "e" || e.key === "E") &&
-          !e.ctrlKey &&
-          !e.metaKey &&
-          !e.altKey
-        ) {
-          const t = e.target.tagName;
-          if (t === "INPUT" || t === "TEXTAREA" || e.target.isContentEditable)
-            return;
-          modoEdicion(!editando);
-        }
-      });
+cv.tabIndex = 0;
+cv.addEventListener("keydown", e => {
+  const k = {ArrowLeft:[-0.06,0], ArrowRight:[0.06,0], ArrowUp:[0,0.045], ArrowDown:[0,-0.045]}[e.key];
+  if (!k) return;
+  e.preventDefault();
+  psi += k[0];
+  pitch = Math.max(-1.3, Math.min(1.3, pitch + k[1]));
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") {
+    if (!planoGrande.classList.contains("off")) cerrarPlanoGrande(); else cerrarTarjeta();
+    return;
+  }
+  // E abre el modo edición, salvo que estés escribiendo en algún lado
+  if ((e.key === "e" || e.key === "E") && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    const t = e.target.tagName;
+    if (t === "INPUT" || t === "TEXTAREA" || e.target.isContentEditable) return;
+    modoEdicion(!editando);
+  }
+});
 
-      document.getElementById("btnCentrar").addEventListener("click", () => {
-        if (viaje) return;
-        psi = ESCENAS[actual].rumbo0;
-        pitch = 0;
-        fov = FOV_BASE;
-      });
-      document.getElementById("btnPantalla").addEventListener("click", () => {
-        const s = document.getElementById("stage");
-        if (document.fullscreenElement) document.exitFullscreen();
-        else if (s.requestFullscreen) s.requestFullscreen();
-      });
+document.getElementById("btnCentrar").addEventListener("click", () => {
+  if (viaje) return;
+  psi = ESCENAS[actual].rumbo0; pitch = 0; fov = FOV_BASE;
+});
+document.getElementById("btnPantalla").addEventListener("click", () => {
+  const s = document.getElementById("stage");
+  if (document.fullscreenElement) document.exitFullscreen();
+  else if (s.requestFullscreen) s.requestFullscreen();
+});
 
-      /* ===========================================================================
+/* ===========================================================================
    10b. Modo edición  ·  tecla E
    ===========================================================================
    Sirve para ubicar hotspots sin adivinar ángulos. Es el inverso exacto de la
@@ -2215,310 +1251,247 @@ void main(){
    No cambia el archivo: te devuelve la línea para pegar en el index.html. Y no
    se ve en el sitio publicado salvo que alguien apriete E a propósito.
    =========================================================================== */
-      let editando = false;
-      const edSalida = document.getElementById("edSalida");
-      const edPanel = document.getElementById("editor");
-      const mira = document.getElementById("mira");
+let editando = false;
+const edSalida = document.getElementById("edSalida");
+const edPanel  = document.getElementById("editor");
+const mira     = document.getElementById("mira");
 
-      function g1(v) {
-        return Math.round(v * 10) / 10;
-      }
-      function normGrados(a) {
-        a = (a + 180) % 360;
-        return (a < 0 ? a + 360 : a) - 180;
-      }
+function g1(v){ return Math.round(v * 10) / 10; }
+function normGrados(a){ a = (a + 180) % 360; return (a < 0 ? a + 360 : a) - 180; }
 
-      /* De un píxel de pantalla al ángulo dentro del panorama. */
-      function anguloEn(px, py) {
-        const w = cv.clientWidth,
-          h = cv.clientHeight;
-        const k = Math.tan(fov / 2),
-          asp = w / h;
-        const x = (px / w - 0.5) * 2,
-          y = (0.5 - py / h) * 2;
-        let v = [x * k * asp, y * k, -1];
-        const n = Math.hypot(v[0], v[1], v[2]);
-        v = [v[0] / n, v[1] / n, v[2] / n];
-        // el visor proyecta aplicando una rotación de -pitch; acá se deshace
-        const cp = Math.cos(pitch),
-          sp = Math.sin(pitch);
-        const d = [v[0], v[1] * cp - v[2] * sp, v[1] * sp + v[2] * cp];
-        const el = Math.asin(Math.max(-1, Math.min(1, d[1])));
-        const rel = Math.atan2(d[0], -d[2]);
-        const rumboMundo = rel + psi;
-        return {
-          rumbo: rumboMundo,
-          el: el,
-          az: normGrados(rumboMundo / RAD + ESCENAS[actual].giro),
-          elg: el / RAD,
-        };
-      }
+/* De un píxel de pantalla al ángulo dentro del panorama. */
+function anguloEn(px, py){
+  const w = cv.clientWidth, h = cv.clientHeight;
+  const k = Math.tan(fov / 2), asp = w / h;
+  const x = (px / w - 0.5) * 2, y = (0.5 - py / h) * 2;
+  let v = [x * k * asp, y * k, -1];
+  const n = Math.hypot(v[0], v[1], v[2]);
+  v = [v[0]/n, v[1]/n, v[2]/n];
+  // el visor proyecta aplicando una rotación de -pitch; acá se deshace
+  const cp = Math.cos(pitch), sp = Math.sin(pitch);
+  const d = [v[0], v[1]*cp - v[2]*sp, v[1]*sp + v[2]*cp];
+  const el = Math.asin(Math.max(-1, Math.min(1, d[1])));
+  const rel = Math.atan2(d[0], -d[2]);
+  const rumboMundo = rel + psi;
+  return { rumbo: rumboMundo, el: el,
+           az: normGrados(rumboMundo / RAD + ESCENAS[actual].giro),
+           elg: el / RAD };
+}
 
-      /* Si el rayo va para abajo, dónde pega en el solado. Sirve para escribir 'en'. */
-      function puntoEnPiso(a) {
-        if (a.el > -0.1) return null;
-        const t = -ALTURA_CAMARA / Math.sin(a.el);
-        const hd = t * Math.cos(a.el);
-        if (hd > 14) return null; // más lejos que eso ya es la calle, no el piso
-        const p = ESCENAS[actual].pos;
-        return [
-          p[0] + Math.sin(a.rumbo) * hd,
-          p[1] + Math.cos(a.rumbo) * hd,
-          hd,
-        ];
-      }
+/* Si el rayo va para abajo, dónde pega en el solado. Sirve para escribir 'en'. */
+function puntoEnPiso(a){
+  if (a.el > -0.10) return null;
+  const t = -ALTURA_CAMARA / Math.sin(a.el);
+  const hd = t * Math.cos(a.el);
+  if (hd > 14) return null;   // más lejos que eso ya es la calle, no el piso
+  const p = ESCENAS[actual].pos;
+  return [p[0] + Math.sin(a.rumbo) * hd, p[1] + Math.cos(a.rumbo) * hd, hd];
+}
 
-      function lineaDe(a, m) {
-        const t = m ? m.titulo : "…";
-        let s = `escena: ${actual}   (giro ${ESCENAS[actual].giro}°)\n\n`;
-        if (m && m.tipo === "salto") {
-          s += `{ a:"${m.a}", mirando:[${g1(a.az)}, ${g1(a.elg)}] }`;
-        } else {
-          const tx = m && m.texto ? m.texto.replace(/"/g, "'") : "…";
-          s += `{ mirando:[${g1(a.az)}, ${g1(a.elg)}], titulo:"${t}",\n  texto:"${tx}" }`;
-        }
-        const pp = puntoEnPiso(a);
-        if (pp)
-          s += `\n\nen el piso, a ${pp[2].toFixed(2)} m:  en:[${pp[0].toFixed(2)}, ${pp[1].toFixed(2)}, 0]`;
-        return s;
-      }
+function lineaDe(a, m){
+  const t = m ? m.titulo : "…";
+  let s = `escena: ${actual}   (giro ${ESCENAS[actual].giro}°)\n\n`;
+  if (m && m.tipo === "salto") {
+    s += `{ a:"${m.a}", mirando:[${g1(a.az)}, ${g1(a.elg)}] }`;
+  } else {
+    const tx = (m && m.texto) ? m.texto.replace(/"/g, "'") : "…";
+    s += `{ mirando:[${g1(a.az)}, ${g1(a.elg)}], titulo:"${t}",\n  texto:"${tx}" }`;
+  }
+  const pp = puntoEnPiso(a);
+  if (pp) s += `\n\nen el piso, a ${pp[2].toFixed(2)} m:  en:[${pp[0].toFixed(2)}, ${pp[1].toFixed(2)}, 0]`;
+  return s;
+}
 
-      function exportarEscena() {
-        const e = ESCENAS[actual];
-        const sal = e.marcas
-          .filter((m) => m.tipo === "salto")
-          .map((m) =>
-            m.manual
-              ? `{ a:"${m.a}", mirando:[${g1(normGrados(m.psi / RAD + e.giro))}, ${g1(m.el / RAD)}] }`
-              : `"${m.a}"`,
-          );
-        const dat = e.marcas
-          .filter((m) => m.tipo === "dato")
-          .map(
-            (m) =>
-              `      { mirando:[${g1(normGrados(m.psi / RAD + e.giro))}, ${g1(m.el / RAD)}], titulo:"${m.titulo}",\n` +
-              `        texto:"${(m.texto || "").replace(/"/g, "'")}" }`,
-          );
-        return (
-          `  ${actual}: {\n` +
-          `    nombre:"${e.nombre}", unidad:"${e.unidad}",\n` +
-          `    pos:[${e.pos[0]}, ${e.pos[1]}], giro:${e.giro}${e.vista !== undefined ? ", vista:" + e.vista : ""},\n` +
-          `    saltos:[${sal.join(", ")}],\n` +
-          (dat.length
-            ? `    datos:[\n${dat.join(",\n")}\n    ]\n`
-            : `    datos:[]\n`) +
-          `  },`
-        );
-      }
+function exportarEscena(){
+  const e = ESCENAS[actual];
+  const sal = e.marcas.filter(m => m.tipo === "salto").map(m =>
+    m.manual ? `{ a:"${m.a}", mirando:[${g1(normGrados(m.psi/RAD + e.giro))}, ${g1(m.el/RAD)}] }`
+             : `"${m.a}"`);
+  const dat = e.marcas.filter(m => m.tipo === "dato").map(m =>
+    `      { mirando:[${g1(normGrados(m.psi/RAD + e.giro))}, ${g1(m.el/RAD)}], titulo:"${m.titulo}",\n` +
+    `        texto:"${(m.texto || "").replace(/"/g, "'")}" }`);
+  return `  ${actual}: {\n` +
+         `    nombre:"${e.nombre}", unidad:"${e.unidad}",\n` +
+         `    pos:[${e.pos[0]}, ${e.pos[1]}], giro:${e.giro}${e.vista !== undefined ? ", vista:" + e.vista : ""},\n` +
+         `    saltos:[${sal.join(", ")}],\n` +
+         (dat.length ? `    datos:[\n${dat.join(",\n")}\n    ]\n` : `    datos:[]\n`) +
+         `  },`;
+}
 
-      function copiar(txt) {
-        const t = document.createElement("textarea");
-        t.value = txt;
-        t.style.position = "fixed";
-        t.style.opacity = "0";
-        document.body.appendChild(t);
-        t.select();
-        try {
-          document.execCommand("copy");
-        } catch (e) {}
-        if (navigator.clipboard)
-          navigator.clipboard.writeText(txt).catch(() => {});
-        t.remove();
-      }
+function copiar(txt){
+  const t = document.createElement("textarea");
+  t.value = txt; t.style.position = "fixed"; t.style.opacity = "0";
+  document.body.appendChild(t); t.select();
+  try { document.execCommand("copy"); } catch (e) {}
+  if (navigator.clipboard) navigator.clipboard.writeText(txt).catch(() => {});
+  t.remove();
+}
 
-      function modoEdicion(on) {
-        editando = on;
-        document.body.classList.toggle("editando", on);
-        edPanel.classList.toggle("off", !on);
-        mira.style.display = "none";
-        if (on) location.hash = "editar";
-        else if (location.hash === "#editar")
-          history.replaceState(null, "", location.pathname);
-      }
-      document
-        .getElementById("edSalir")
-        .addEventListener("click", () => modoEdicion(false));
-      document
-        .getElementById("edCopiar")
-        .addEventListener("click", () => copiar(edSalida.textContent));
-      document.getElementById("edEscena").addEventListener("click", () => {
-        edSalida.textContent = exportarEscena();
-        copiar(edSalida.textContent);
-      });
+function modoEdicion(on){
+  editando = on;
+  document.body.classList.toggle("editando", on);
+  edPanel.classList.toggle("off", !on);
+  mira.style.display = "none";
+  if (on) location.hash = "editar"; else if (location.hash === "#editar") history.replaceState(null, "", location.pathname);
+}
+document.getElementById("edSalir").addEventListener("click", () => modoEdicion(false));
+document.getElementById("edCopiar").addEventListener("click", () => copiar(edSalida.textContent));
+document.getElementById("edEscena").addEventListener("click", () => {
+  edSalida.textContent = exportarEscena(); copiar(edSalida.textContent);
+});
 
-      /* clic sobre la imagen: devuelve el ángulo de ese punto */
-      let hubeArrastrado = false;
-      cv.addEventListener("click", (e) => {
-        if (!editando || hubeArrastrado) {
-          hubeArrastrado = false;
-          return;
-        }
-        const r = cv.getBoundingClientRect();
-        const a = anguloEn(e.clientX - r.left, e.clientY - r.top);
-        edSalida.textContent = lineaDe(a, null);
-        mira.style.display = "block";
-        mira.style.left = e.clientX - r.left + "px";
-        mira.style.top = e.clientY - r.top + "px";
-      });
+/* clic sobre la imagen: devuelve el ángulo de ese punto */
+let hubeArrastrado = false;
+cv.addEventListener("click", e => {
+  if (!editando || hubeArrastrado) { hubeArrastrado = false; return; }
+  const r = cv.getBoundingClientRect();
+  const a = anguloEn(e.clientX - r.left, e.clientY - r.top);
+  edSalida.textContent = lineaDe(a, null);
+  mira.style.display = "block";
+  mira.style.left = (e.clientX - r.left) + "px";
+  mira.style.top  = (e.clientY - r.top) + "px";
+});
 
-      /* arrastrar una marca existente: se mueve en vivo y devuelve su línea nueva */
-      let marcaArr = null;
-      hud.addEventListener(
-        "pointerdown",
-        (e) => {
-          if (!editando) return;
-          const b = e.target.closest(".hs");
-          if (!b) return;
-          const s = marcas.find((x) => x.el === b);
-          if (!s) return;
-          e.preventDefault();
-          e.stopPropagation();
-          marcaArr = s;
-          b.setPointerCapture(e.pointerId);
-        },
-        true,
-      );
-      hud.addEventListener(
-        "pointermove",
-        (e) => {
-          if (!marcaArr) return;
-          const r = cv.getBoundingClientRect();
-          const a = anguloEn(e.clientX - r.left, e.clientY - r.top);
-          marcaArr.m.psi = a.rumbo;
-          marcaArr.m.el = a.el;
-          marcaArr.m.manual = true;
-          edSalida.textContent = lineaDe(a, marcaArr.m);
-        },
-        true,
-      );
-      hud.addEventListener(
-        "pointerup",
-        (e) => {
-          if (!marcaArr) return;
-          marcaArr = null;
-          hubeArrastrado = true;
-          setTimeout(() => {
-            hubeArrastrado = false;
-          }, 60);
-        },
-        true,
-      );
+/* arrastrar una marca existente: se mueve en vivo y devuelve su línea nueva */
+let marcaArr = null;
+hud.addEventListener("pointerdown", e => {
+  if (!editando) return;
+  const b = e.target.closest(".hs"); if (!b) return;
+  const s = marcas.find(x => x.el === b); if (!s) return;
+  e.preventDefault(); e.stopPropagation();
+  marcaArr = s; b.setPointerCapture(e.pointerId);
+}, true);
+hud.addEventListener("pointermove", e => {
+  if (!marcaArr) return;
+  const r = cv.getBoundingClientRect();
+  const a = anguloEn(e.clientX - r.left, e.clientY - r.top);
+  marcaArr.m.psi = a.rumbo; marcaArr.m.el = a.el; marcaArr.m.manual = true;
+  edSalida.textContent = lineaDe(a, marcaArr.m);
+}, true);
+hud.addEventListener("pointerup", e => {
+  if (!marcaArr) return;
+  marcaArr = null; hubeArrastrado = true;
+  setTimeout(() => { hubeArrastrado = false; }, 60);
+}, true);
 
-      /* ===========================================================================
+/* ===========================================================================
    11. Bucle
    =========================================================================== */
-      function bucle() {
-        if (!arrastre && !viaje && Math.abs(inercia) > 0.00012) {
-          psi += inercia;
-          inercia *= 0.94;
-        }
-        dibujar();
-        ubicarMarcas();
-        pintarPlano();
-        requestAnimationFrame(bucle);
-      }
+function bucle(){
+  if (!arrastre && !viaje && Math.abs(inercia) > 0.00012) {
+    psi += inercia; inercia *= 0.94;
+  }
+  dibujar(); ubicarMarcas(); pintarPlano();
+  requestAnimationFrame(bucle);
+}
 
-      /* ===========================================================================
+/* ===========================================================================
+   11b. Escenas que no cargan
+   ===========================================================================
+   Si un panorama no está —todavía no lo renderizaste, o el archivo se borró— la
+   escena se saca del recorrido en vez de dejar una flecha que no lleva a ningún
+   lado. Así se puede tener una cámara configurada de antemano: aparece sola el
+   día que existe el JPG.
+   =========================================================================== */
+function descartar(k){
+  if (!ESCENAS[k]) return;
+  const u = ESCENAS[k].unidad;
+  console.warn("falta " + CARPETA + k + ".jpg — saco esa parada del recorrido");
+  UNIDADES[u].orden = UNIDADES[u].orden.filter(x => x !== k);
+  if (UNIDADES[u].inicio === k) UNIDADES[u].inicio = UNIDADES[u].orden[0];
+  listaEscenas.forEach(j => {
+    const e = ESCENAS[j];
+    if (!e || j === k) return;
+    e.saltos = (e.saltos || []).filter(x => idSalto(x) !== k);
+    e.marcas = (e.marcas || []).filter(m => !(m.tipo === "salto" && m.a === k));
+  });
+  delete ESCENAS[k];
+  const i = listaEscenas.indexOf(k); if (i >= 0) listaEscenas.splice(i, 1);
+  if (actual === k) { const d = UNIDADES[u].inicio; if (d) irA(d); return; }
+  if (actual) { planoAct = null; armarPlano(unidad); armarAmbientes(); marcarInterfaz(); armarMarcas(); }
+}
+
+/* ===========================================================================
    12. Carga
    =========================================================================== */
-      const barraI = document.getElementById("barraI");
-      const cargaMsg = document.getElementById("cargaMsg");
-      let bajadas = 0;
+const barraI  = document.getElementById("barraI");
+const cargaMsg = document.getElementById("cargaMsg");
+let bajadas = 0;
 
-      function cargarUna(k) {
-        if (imagenes[k]) return Promise.resolve(texturas[k]);
-        return new Promise((res) => {
-          const im = new Image();
-          im.crossOrigin = "anonymous";
-          im.onload = () => {
-            imagenes[k] = im;
-            texturas[k] = crearTextura(im);
-            bajadas++;
-            res(texturas[k]);
-          };
-          im.onerror = () => {
-            console.warn("no se pudo cargar", k);
-            res(null);
-          };
-          im.src = CARPETA + k + ".jpg";
-        });
-      }
+function cargarUna(k){
+  if (imagenes[k]) return Promise.resolve(texturas[k]);
+  return new Promise(res => {
+    const im = new Image();
+    im.crossOrigin = "anonymous";
+    im.onload = () => {
+      imagenes[k] = im;
+      texturas[k] = crearTextura(im);
+      bajadas++;
+      res(texturas[k]);
+    };
+    im.onerror = () => { descartar(k); res(null); };
+    im.src = CARPETA + k + ".jpg";
+  });
+}
 
-      function fallar(msg) {
-        cargaMsg.innerHTML = msg;
-        cargaMsg.style.color = "#ff8b8b";
-        cargaMsg.style.maxWidth = "440px";
-        cargaMsg.style.lineHeight = "1.8";
-      }
+function fallar(msg){
+  cargaMsg.innerHTML = msg;
+  cargaMsg.style.color = "#ff8b8b";
+  cargaMsg.style.maxWidth = "440px";
+  cargaMsg.style.lineHeight = "1.8";
+}
 
-      document.getElementById("cargaN").textContent = MARCA.nombre;
-      document.getElementById("marcaN").textContent = MARCA.nombre;
-      document.getElementById("marcaB").textContent = MARCA.bajada;
-      document.querySelector("#carga .sub").textContent = MARCA.bajada;
+document.getElementById("cargaN").textContent = MARCA.nombre;
+document.getElementById("marcaN").textContent = MARCA.nombre;
+document.getElementById("marcaB").textContent = MARCA.bajada;
+document.querySelector("#carga .sub").textContent = MARCA.bajada;
 
-      if (window.innerWidth <= 520) {
-        document.getElementById("ayudaT").textContent =
-          "Arrastrá para mirar · tocá los círculos";
-      }
-      armarPlano(unidad);
-      armarAmbientes();
-      pintarFicha();
+if (window.innerWidth <= 520) {
+  document.getElementById("ayudaT").textContent = "Arrastrá para mirar · tocá los círculos";
+}
+armarPlano(unidad);
+armarAmbientes();
+pintarFicha();
 
-      if (!gl) {
-        fallar("Este navegador no tiene WebGL disponible.");
-      } else {
-        const primera = UNIDADES[unidad].inicio;
-        cargarUna(primera).then((tex) => {
-          if (!tex) {
-            fallar(
-              location.protocol === "file:"
-                ? "Los panoramas no cargan si abrís el archivo con doble clic.<br>" +
-                    "Abrí una terminal en esta carpeta y corré <b>python -m http.server 8000</b>,<br>" +
-                    "después entrá a <b>http://localhost:8000</b>"
-                : "No encontré <b>" +
-                    CARPETA +
-                    primera +
-                    ".jpg</b>.<br>" +
-                    "Copiá los siete panoramas a la carpeta <b>" +
-                    CARPETA +
-                    "</b> con esos nombres exactos.",
-            );
-            return;
-          }
-          redimensionar();
-          actual = primera;
-          giroA = giroB = ESCENAS[primera].giro * RAD;
-          psi = ESCENAS[primera].rumbo0;
-          escA = escB = primera;
-          bindear();
-          armarMarcas();
-          armarPlano(unidad);
-          armarAmbientes();
-          marcarInterfaz();
-          pintarFicha();
-          document.getElementById("carga").classList.add("off");
-          if (window.innerWidth > 980)
-            document.getElementById("ficha").classList.remove("off");
-          setTimeout(
-            () => document.getElementById("ayuda").classList.add("off"),
-            8000,
-          );
-          if (location.hash === "#editar") modoEdicion(true);
-          bucle();
+if (!gl) {
+  fallar("Este navegador no tiene WebGL disponible.");
+} else {
+  const primera = UNIDADES[unidad].inicio;
+  cargarUna(primera).then(tex => {
+    if (!tex) {
+      fallar(location.protocol === "file:"
+        ? "Los panoramas no cargan si abrís el archivo con doble clic.<br>" +
+          "Abrí una terminal en esta carpeta y corré <b>python -m http.server 8000</b>,<br>" +
+          "después entrá a <b>http://localhost:8000</b>"
+        : "No encontré <b>" + CARPETA + primera + ".jpg</b>.<br>" +
+          "Copiá los siete panoramas a la carpeta <b>" + CARPETA + "</b> con esos nombres exactos.");
+      return;
+    }
+    redimensionar();
+    actual = primera;
+    giroA = giroB = ESCENAS[primera].giro * RAD;
+    psi   = ESCENAS[primera].rumbo0;
+    escA = escB = primera; bindear();
+    armarMarcas(); armarPlano(unidad); armarAmbientes(); marcarInterfaz(); pintarFicha();
+    document.getElementById("carga").classList.add("off");
+    if (window.innerWidth > 980) document.getElementById("ficha").classList.remove("off");
+    setTimeout(() => document.getElementById("ayuda").classList.add("off"), 8000);
+    if (location.hash === "#editar") modoEdicion(true);
+    bucle();
 
-          // El resto baja en segundo plano, empezando por los vecinos de la primera.
-          const resto = ESCENAS[primera].saltos
-            .concat(listaEscenas.filter((k) => k !== primera))
-            .filter((k, i, a) => a.indexOf(k) === i && k !== primera);
-          (function siguiente(i) {
-            if (i >= resto.length) return;
-            cargarUna(resto[i]).then(() => {
-              barraI.style.width = (100 * bajadas) / listaEscenas.length + "%";
-              siguiente(i + 1);
-            });
-          })(0);
-        });
-      }
-    </script>
-  </body>
+    // El resto baja en segundo plano, empezando por los vecinos de la primera.
+    const resto = ESCENAS[primera].saltos
+      .concat(listaEscenas.filter(k => k !== primera))
+      .filter((k, i, a) => a.indexOf(k) === i && k !== primera);
+    (function siguiente(i){
+      if (i >= resto.length) return;
+      cargarUna(resto[i]).then(() => {
+        barraI.style.width = (100 * (bajadas) / listaEscenas.length) + "%";
+        siguiente(i + 1);
+      });
+    })(0);
+  });
+}
+</script>
+</body>
 </html>
