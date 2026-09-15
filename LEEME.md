@@ -19,22 +19,29 @@ tour360-web/
 
 ---
 
-## 0. Las dos carpetas de panoramas
+## 0. Las tres carpetas de panoramas
 
-`export\tour360_salida\panoramas\` es **la carpeta maestra**: la escribe Blender.
-`tour360-web\panoramas\` es una **copia descartable**, existe sólo para que el
-navegador la sirva.
+| Carpeta | Qué es | Quién la escribe |
+|---|---|---|
+| `export\tour360_salida\panoramas\` | **maestra de trabajo**, 2560 px | paso 2 |
+| `export\tour360_salida\panoramas_hq\` | **maestra definitiva**, 6144 px | paso 5 |
+| `tour360-web\panoramas\` | **copia descartable**: la sirve el navegador | vos, con `copy` |
 
-Mientras no toques la primera, la segunda se puede pisar, borrar o arruinar las
-veces que quieras: se rehace copiando de nuevo. Por eso conviene copiar siempre
-en ese sentido y nunca al revés. Si dudás, parado en `tour360-web`:
+Mientras no toques las dos primeras, la tercera se puede pisar, borrar o arruinar
+las veces que quieras: se rehace copiando de nuevo. Por eso conviene copiar
+siempre en ese sentido y nunca al revés. Parado en `tour360-web`:
 
 ```
-copy /Y "..\export\tour360_salida\panoramas\*.jpg" panoramas\
+copy /Y "..\export\tour360_salida\panoramas\*.jpg"    panoramas\   ← las de trabajo
+copy /Y "..\export\tour360_salida\panoramas_hq\*.jpg" panoramas\   ← las definitivas
 ```
 
-Las siete son de 2560 × 1280. Si aparece alguna de 1024 × 512 es un sobrante de
-las pruebas: no la usa nadie, pero sacala para no confundirte.
+Que el paso 5 escriba en su propia carpeta es a propósito: **una tanda de alta
+calidad nunca puede romper el tour que ya funciona.** Hasta que vos copies, lo
+que se ve en el visor sigue siendo lo de antes.
+
+Las nueve de trabajo son de 2560 × 1280. Si aparece alguna de 1024 × 512 es un
+sobrante de las pruebas: no la usa nadie, pero sacala para no confundirte.
 
 ---
 
@@ -418,7 +425,8 @@ mano en ningún lado.
 | La planta sale toda violeta | Blender no encontró las texturas: el FBX guarda rutas absolutas. Los scripts las re-apuntan solos, pero la carpeta de texturas tiene que estar al lado del FBX |
 | La planta en color sale negra | Quedó una losa arriba tapando el sol. El corte de cámara esconde de la *vista*, no del *render*: hay que `hide_render` |
 | Se ve el panorama de OTRO ambiente | Ya resuelto: las texturas se suben por la unidad 2. Si tocás `crearTextura` y volvés a usar la unidad 0, cada imagen que termina de bajar en segundo plano pisa la que está en pantalla |
-| Anda en la compu y no en el celular | Casi siempre es memoria: siete texturas de 2560 px. Bajá a 2048 px o comprimí más |
+| Anda en la compu y no en el celular | Casi siempre es memoria: nueve texturas de 2560 px. Bajá a 2048 px o comprimí más |
+| Un `.bat` abre la ventana negra y **se cierra de una**, sin decir nada | Casi siempre un `SHIFT` adentro de un bloque `IF (...) ELSE (...)`: cmd.exe no lo admite y mata el archivo en el acto, sin mensaje y sin llegar al `pause`. Lo mismo pasa con un paréntesis sin cerrar. La forma de encontrarlo es la de siempre: que el `.bat` escriba en un log desde la primera línea y mirar cuál fue la última que llegó a escribir |
 
 ---
 
@@ -749,13 +757,46 @@ mismo modelo, mismas cámaras, mismo `camaras.json`. Se corre cuando el recorrid
 ya está cerrado y no vas a mover más ninguna cámara.
 
 ```
-5-alta-calidad.bat                     todas las que falten
-5-alta-calidad.bat "" dos_cocina       sólo esa
-5-alta-calidad.bat "" --rehacer        rehacer todas desde cero
+5-alta-calidad.bat                     la tanda entera (calidad NOCHE, 6144 px)
+5-alta-calidad.bat --maxima            8192 px, sólo si tenés el fin de semana
+5-alta-calidad.bat --solo dos_cocina   una sola cámara
+5-alta-calidad.bat --rehacer           rehacer las que ya estén hechas
+5-alta-calidad.bat --sin-prueba        saltear la pasada de prueba
 ```
 
-**Si un JPG ya existe, saltea esa cámara.** Una tanda a 6144 px puede tardar toda
-la noche; si se corta, volvés a correrlo y sigue donde iba.
+Ya no hace falta el `""` del principio: el `.fbx` lo busca solo.
+
+**Escribe en una carpeta aparte: `export\tour360_salida\panoramas_hq`.** No pisa
+nada. Los panoramas de trabajo de 2560 px quedan donde están hasta que vos
+decidas cambiarlos, así que si la tanda sale mal no perdiste el tour que ya
+funciona. Cuando te gusten:
+
+```
+copy /Y "..\export\tour360_salida\panoramas_hq\*.jpg" panoramas\
+```
+
+**Si un JPG ya existe, saltea esa cámara.** Una tanda a 6144 px tarda toda la
+noche; si se corta la luz, volvés a hacer doble click y sigue donde iba. Todo lo
+que imprime queda en `alta-calidad-ultimo.log`, al lado del `.bat`.
+
+### Cuánto tarda, de verdad
+
+La cuenta sale de un dato medido: **2560 px, 96 muestras, 6 núcleos = 14 min por
+panorama**. De ahí se escala por píxeles, por muestras efectivas (el adaptativo
+corta antes: cuento 0,6 del máximo) y por núcleos.
+
+| Preset | | 6 núcleos | 8 núcleos | 12 núcleos |
+|---|---|---|---|---|
+| NOCHE | 6144 px / 256 m | 19,4 h | **14,5 h** | 9,7 h |
+| `--maxima` | 8192 px / 320 m | 43 h | 32 h | 21,5 h |
+
+Con 8 núcleos, arrancar a las 19:30 es terminar cerca de las 10 de la mañana. El
+script imprime la hora estimada de fin después de cada cámara, así que no hace
+falta adivinar.
+
+Y por eso las cámaras se renderizan **por prioridad**, no en el orden del JSON:
+la lista `calidad.prioridad` pone primero las que más se muestran. Si a las 8 de
+la mañana lo cortás, lo que falta son las dos menos importantes.
 
 ### Qué hace distinto, en orden de cuánto se nota
 
@@ -784,8 +825,48 @@ todo termina con el mismo acabado de papel. El script asigna rugosidad según el
 sobre el nombre, que lo puso una persona: mucho más confiable que adivinar
 mirando el color.
 
-**6. Muestreo.** Adaptativo, más rebotes, denoiser con pases de albedo y normal,
-cáusticas apagadas y un clamp de indirecta que mata los puntos blancos.
+**6. Muestreo.** Adaptativo, **ruido azul**, **árbol de luces**, más rebotes,
+denoiser con pases de albedo y normal, cáusticas apagadas y un clamp de
+indirecta que mata los puntos blancos.
+
+El *ruido azul* es gratis y se nota: la misma cantidad de muestras, repartidas de
+manera que el error quede en frecuencias altas, que es justo lo que el denoiser
+sabe limpiar. El *árbol de luces* importa porque con los portales puestos hay
+decenas de fuentes: sin árbol, cada rayo las prueba a todas; con árbol, el
+muestreador elige la que de verdad ilumina ese punto.
+
+**7. Atmósfera.** El cielo se configura con altura, aire, polvo y ozono. A 14 m
+de altura y con algo de polvo, el horizonte se pone levemente lechoso y los
+edificios del fondo pierden contraste. Eso se llama *perspectiva aérea*, y es una
+de las cosas que el ojo usa para decidir si algo es una foto o un dibujo. Los
+fondos perfectamente nítidos son media firma del "esto es un render".
+
+### Las tres cosas que lo hacen dejable solo
+
+**A. Pasada de prueba con exposición medida.** Antes de la tanda larga renderiza
+las nueve cámaras chiquitas —1024 px, 24 muestras, unos 5 minutos en total—,
+mide el brillo que salió y corrige la exposición sola.
+
+Mide la **mediana** de la luminancia, no el promedio: en un panorama con balcón
+el cielo es un cuarto de la imagen y se lleva puesto cualquier promedio. La
+mediana también aguanta el ruido, que es lo que hace que 24 muestras alcancen.
+
+La corrección es `log2(objetivo / medido)`, pero **amortiguada al 65% y recortada
+a ±1 EV**. AgX comprime, así que la cuenta cruda siempre corrige de más.
+Quedarse corto es recuperable —para eso están las variantes—; pasarse, no.
+
+Si la prueba sale casi negra no corrige nada y te lo dice: eso no es un problema
+de exposición sino de luz, y taparlo con exposición sería arruinar la noche
+prolijamente. Es el mismo criterio de todo el proyecto: **medir en vez de
+deducir**.
+
+**B. Variantes de exposición.** De cada render guarda además una versión más
+clara y una más oscura (±0,35 EV) en `panoramas_hq\_variantes\`. **No cuesta
+tiempo de cálculo**: es la misma imagen que ya está en memoria, revelada
+distinto, como un negativo. Si la exposición final no te cierra, elegís la
+variante y listo, sin volver a renderizar.
+
+**C. Orden por prioridad y retoma**, que ya vimos arriba.
 
 ### Luminarias: la luz que sí tiene que estar prendida
 
@@ -818,28 +899,59 @@ haciendo pruebas rápidas sin tocar nada:
 ```json
 "calidad": {
   "resolucion": 6144,
-  "muestras": 400,
+  "muestras": 256,
+  "umbral_adaptativo": 0.008,
+  "nucleos_libres": 0,
   "bisel": 0.0018,
   "portales": true,
   "usar_relleno": false,
   "exposicion": -0.4,
+  "exposicion_automatica": true,
+  "brillo_objetivo": 0.33,
+  "variantes_ev": 0.35,
   "clamp_indirecto": 8.0,
-  "contraste": "AgX - Medium High Contrast"
+  "filtro": 1.35,
+  "calidad_jpg": 94,
+  "contraste": "AgX - Medium High Contrast",
+  "prioridad": ["dos_comedor", "dos_living", "mono_estar", "..."],
+  "maxima": { "resolucion": 8192, "muestras": 320, "umbral_adaptativo": 0.006 }
 }
 ```
 
+Dos que conviene entender:
+
+- **`nucleos_libres: 0`** acá adentro, contra 2 afuera. El paso 2 deja dos
+  núcleos libres porque lo corrés mientras trabajás; el paso 5 lo dejás solo y
+  usa toda la máquina. Son dos números distintos a propósito.
+- **`muestras` 256 y no 400.** A más resolución **necesitás menos muestras por
+  píxel**, porque el visor amplía menos y porque el denoiser tiene más datos
+  para promediar. 6144 con 256 se ve mejor que 4096 con 400, y tarda parecido.
+  La resolución es la palanca; las muestras son el precio.
+- **`filtro: 1.35`.** El filtro de reconstrucción de fábrica es 1,5 y suaviza de
+  más. A 6144 px, 1,35 da un poco más de nitidez sin dientes de sierra.
+
 | Si ves… | Tocá |
 |---|---|
-| Manchas o ruido en las sombras | `muestras` a 600, o `umbral_adaptativo` a 0,002 |
+| Manchas o ruido en las sombras | `umbral_adaptativo` a 0,004, o `muestras` a 400 |
 | Puntos blancos sueltos | `clamp_indirecto` a 5 |
-| Todo muy oscuro | `exposicion` a 0,2 — y revisá que los portales se hayan colocado |
-| Todo lavado | `exposicion` a −0,8 |
+| Todo muy oscuro | subí `brillo_objetivo` a 0,38 — y revisá en el log que los portales se hayan colocado |
+| Todo lavado | `brillo_objetivo` a 0,28 |
+| La exposición automática te arruina algo | `exposicion_automatica: false` |
 | Los bordes siguen filosos | `bisel` a 0,003 |
 | Tarda demasiado | `resolucion` a 4096: son 2,25× menos píxeles |
 
-**La primera vez, corré una sola cámara.** `5-alta-calidad.bat "" dos_comedor`,
-mirá el resultado, ajustá exposición y muestras, y recién ahí largá la tanda
-entera. Una noche perdida por una exposición mal puesta duele.
+### Sobre aquello de "probá con una sola cámara primero"
+
+Eso decía este readme antes, y estaba bien mientras el script no supiera medirse
+a sí mismo: el riesgo real era perder la noche entera por un número de
+exposición.
+
+Ese riesgo ahora lo cubre la pasada de prueba (que es, en el fondo, exactamente
+"probá una cámara primero", sólo que las prueba todas, dura cinco minutos y saca
+la conclusión sola). Así que **largá la tanda entera de una**. Si querés seguir
+mirando antes de irte: dejalo arrancar, esperá los cinco minutos de la prueba,
+abrí un par de JPG de `panoramas_hq\_prueba\` y recién ahí andate. Son chiquitos
+y feos por el ruido, pero la luz y el encuadre se ven perfecto.
 
 
 ---
