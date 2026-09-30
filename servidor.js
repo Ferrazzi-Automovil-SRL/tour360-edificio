@@ -9,8 +9,8 @@
        node servidor.js . 8080     -> otro puerto
    
    Manda Cache-Control: no-store, así que mientras probás NO hace falta subir
-   la constante VERSION del index.html ni hacer Ctrl+Shift+R. Para la web
-   publicada sí hace falta: eso lo sirve Vercel, no esto.
+   la constante VERSION de js/config.js ni hacer Ctrl+Shift+R. Para la web
+   publicada sí hace falta: eso lo sirve GitHub Pages, no esto.
    --------------------------------------------------------------------------- */
 const http = require("http"), fs = require("fs"), path = require("path");
 

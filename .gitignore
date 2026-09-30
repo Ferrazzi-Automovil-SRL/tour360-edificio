@@ -1,0 +1,3 @@
+# Lo que Git no sube: basura que genera Python sola.
+__pycache__/
+*.pyc

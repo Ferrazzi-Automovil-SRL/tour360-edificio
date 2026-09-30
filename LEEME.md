@@ -1,21 +1,30 @@
 # Recorrido 360 · FRG
 
 Visor de las dos unidades del 5.º piso, en una sola página con selector arriba.
-No usa ninguna librería: es un `index.html` con WebGL adentro. Se publica como
-sitio estático (Vercel) y no necesita servidor.
+No usa ninguna librería: HTML + CSS + JavaScript con WebGL. Se publica como
+sitio estático con GitHub Pages (repo `Ferrazzi-Automovil-SRL/tour360-edificio`)
+y no necesita servidor.
 
 ```
 tour360-web/
-├── index.html          ← el visor entero (config + código)
-├── abrir-visor.bat     ← doble clic: levanta el server y abre el navegador
+├── index.html          ← sólo la estructura de la página (HTML)
+├── css/
+│   └── visor.css       ← todos los estilos
+├── js/
+│   ├── config.js       ← LO EDITABLE: marca, WhatsApp, VERSION, unidades, escenas
+│   ├── planos.js       ← generado por hacer-planos.py, no tocar a mano
+│   └── visor.js        ← la maquinaria (WebGL, hotspots, controles, carga)
+├── panoramas/          ← los JPG del render
 ├── plano-mono.png      ← minimapa del monoambiente
 ├── plano-dos.png       ← minimapa del dos ambientes
-├── hacer-planos.py     ← genera esos dos desde planta.png
-├── planos.json         ← a qué metros corresponde cada minimapa
-├── vercel.json         ← caché de las imágenes al publicar
-├── panoramas/          ← acá van los 7 JPG del render
-└── panoramas-prueba/   ← 7 imágenes de grilla para probar sin el render
+├── _config.yml         ← lo que GitHub Pages NO publica (.bat, .py, LEEME…)
+└── herramientas de trabajo (no salen en el sitio):
+    abrir-visor.bat, abrir-visor-node.bat, servidor.js,
+    hacer-planos.bat, hacer-planos.py, planos.json
 ```
+
+Los tres `<script>` del `index.html` van en ese orden: `visor.js` usa las
+constantes de `config.js` y `planos.js`.
 
 ---
 
@@ -107,7 +116,7 @@ segunda visita es instantánea.
 
 ## 3. Cómo editar el recorrido
 
-Todo lo editable está arriba de todo del `index.html`, en el bloque
+Todo lo editable está en `js/config.js`, en el bloque
 **1. CONFIGURACIÓN**. Es JavaScript pero se lee como una ficha: comas al final de
 cada línea, comillas en los textos.
 
@@ -173,7 +182,7 @@ python hacer-planos.py "..\export\tour360_salida\planta-color.png"
 ```
 
 Escribe `plano-mono.png`, `plano-dos.png` y `planos.json`. **Ese JSON hay que
-pegarlo en la constante `PLANOS` del `index.html`**: guarda a qué metros
+escribirlo en `js/planos.js`** (lo hace solo): guarda a qué metros
 corresponde cada recorte, y es lo que hace que los pines caigan en su lugar sin
 que nadie mida píxeles. El script recorta solo hasta donde hay dibujo, así que
 cada vez que lo corras los números cambian un poco. Si cambiás el recorte y no
@@ -218,7 +227,7 @@ Apretá **E** dentro del visor (o entrá a `…/#editar`). Aparece una barra aba
 - **Arrastrá una marca existente** → se mueve en vivo y la barra te muestra su
   línea nueva. Así corregís uno que quedó torcido mirándolo, no calculándolo.
 - **Copiar la escena entera** → te arma el bloque completo de esa escena, con
-  saltos, datos y textos, para reemplazar el que está en el `index.html`.
+  saltos, datos y textos, para reemplazar el que está en `js/config.js`.
 
 No modifica el archivo: te da el texto y vos lo pegás. Y no se ve en el sitio
 publicado salvo que alguien apriete E a propósito.
@@ -378,7 +387,7 @@ Llegar mirando hacia donde caminaste suena bien y funciona… hasta que la líne
 de viaje termina contra una pared, y entonces "te deja en cualquier lado". El
 visor usa el rumbo de viaje **sólo si cae a menos de 55° del encuadre con que se
 renderizó esa cámara**; si no, entra por el encuadre bueno. Ese umbral es
-`LLEGADA_MAX`, arriba de la sección 4 del `index.html`: subilo si querés que se
+`LLEGADA_MAX`, arriba de la sección 4 de `js/visor.js`: subilo si querés que se
 respete siempre la caminata, bajalo si preferís entrar siempre bien encuadrado.
 
 ### Y abajo de todo, lo que hace que nada de esto se note
@@ -651,7 +660,7 @@ volver a chequearlos antes de comprar, que los precios y los modelos se mueven.
 
 ## 9. Tocarlo vos, sin preguntar
 
-Todo lo editable del visor está en el `index.html`, en el bloque **1. CONFIGURACIÓN**,
+Todo lo editable del visor está en `js/config.js`, en el bloque **1. CONFIGURACIÓN**,
 que son las primeras 150 líneas. De ahí para abajo es maquinaria y no hace falta
 entrarle.
 
@@ -736,7 +745,7 @@ en la consola y saca esa parada del recorrido.
 **Un cambio, guardar, Ctrl+F5, mirar.** Sin excepciones. Si hacés cinco cambios
 y algo se rompe, no sabés cuál fue; si hacés uno, lo sabés siempre.
 
-Antes de una sesión larga, copiá el `index.html` a `index-anda.html`. No es
+Antes de una sesión larga, copiá `js/config.js` a `js/config-anda.js`. No es
 paranoia: es la diferencia entre perder dos minutos y perder una tarde. Cuando el
 cambio nuevo funciona, pisás la copia.
 

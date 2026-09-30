@@ -1,0 +1,11 @@
+# GitHub Pages: lo que NO se publica en el sitio. Son herramientas de trabajo:
+# siguen en GitHub y en la PC (los .bat andan igual), pero no quedan
+# descargables desde la pagina.
+exclude:
+  - "*.bat"
+  - "*.py"
+  - LEEME.md
+  - servidor.js
+  - planos.json
+  - plano-viejo.jpg
+  - vercel.json

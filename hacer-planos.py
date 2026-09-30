@@ -6,7 +6,7 @@
 #
 # Toma la planta entera del piso y devuelve un PNG por unidad, recortado y con el
 # fondo transparente, más un planos.json con a qué metros corresponde cada
-# recorte. Ese JSON va pegado en la constante PLANOS del index.html: es lo que
+# recorte. Ese JSON queda escrito en js/planos.js (constante PLANOS): es lo que
 # hace que los pines caigan solos en su lugar.
 #
 # Trabaja de dos maneras según lo que le des:
@@ -39,7 +39,7 @@ import numpy as np
 # imágenes se leen y graban con Blender, y el modo COLOR (el que se usa) anda
 # igual. El modo TINTA necesita scipy (morfología): sólo con Python instalado.
 #
-# Y al final pega el planos.json en la constante PLANOS del index.html: era un
+# Y al final escribe js/planos.js con la constante PLANOS: era un
 # paso a mano, y si se olvidaba los pines quedaban corridos.
 # ---------------------------------------------------------------------------
 try:
@@ -231,26 +231,28 @@ for k, u in UNIDADES.items():
 with open(os.path.join(SALIDA, "planos.json"), "w", encoding="utf-8") as f:
     json.dump(mapa, f, indent=2, ensure_ascii=False)
 
-# --- y pegarlo en el index.html ---------------------------------------------
-# Sólo se reemplazan las líneas de cada unidad adentro de "const PLANOS = {",
-# con el mismo formato que ya tienen. Si no las encuentra, avisa y no toca nada.
-idx = os.path.join(SALIDA, "index.html")
-try:
-    with open(idx, encoding="utf-8", newline="") as f:
-        html = f.read()
-    cambios = 0
-    for k, m in mapa.items():
-        linea = (f'{k}:{" " * max(1, 5 - len(k))}{{ archivo:"{m["archivo"]}", '
-                 f'xmin:{m["xmin"]}, xmax:{m["xmax"]}, ymin:{m["ymin"]}, '
-                 f'ymax:{m["ymax"]}, px:{m["px"]}, py:{m["py"]} }}')
-        html, n = re.subn(r'(?m)^(\s*)' + k + r':\s*\{ archivo:"plano-' + k + r'\.png"[^\n]*?\}',
-                          lambda mt: mt.group(1) + linea, html, count=1)
-        cambios += n
-    if cambios == len(mapa):
-        with open(idx, "w", encoding="utf-8", newline="") as f:
-            f.write(html)
-        print("\n  listo. PLANOS del index.html actualizado solo.\n")
-    else:
-        print("\n  listo, pero NO encontré PLANOS en el index.html: pegá planos.json a mano.\n")
-except OSError:
-    print("\n  listo. Pegá el contenido de planos.json en la constante PLANOS del index.html\n")
+# --- y escribir js/planos.js ------------------------------------------------
+# 30/09: el visor se separó en css/ y js/. Los planos viven solos en
+# js/planos.js, que se reescribe entero cada vez: ya no hay que buscar líneas
+# adentro del index.html (y no se rompe si alguien le da formato al código).
+CABECERA = """/* ============================================================================
+   planos.js · los planos de la esquina, uno por unidad
+
+   ARCHIVO GENERADO: lo reescribe hacer-planos.py (paso 4-plano). No editar a
+   mano. 'xmin/xmax/ymin/ymax' es el pedazo de planta que entró en el recorte,
+   en metros: con eso el visor pone cada pin en su lugar sin medir píxeles.
+   ============================================================================ */
+"use strict";
+
+"""
+def js(v, sangria=""):
+    if isinstance(v, dict):
+        filas = [f"{sangria}  {k}: {js(x, sangria + '  ')}," for k, x in v.items()]
+        return "{\n" + "\n".join(filas) + "\n" + sangria + "}"
+    return json.dumps(v, ensure_ascii=False)
+
+destino = os.path.join(SALIDA, "js", "planos.js")
+os.makedirs(os.path.dirname(destino), exist_ok=True)
+with open(destino, "w", encoding="utf-8", newline="\n") as f:
+    f.write(CABECERA + "const PLANOS = " + js(mapa) + ";\n")
+print("\n  listo. js/planos.js actualizado solo.\n")

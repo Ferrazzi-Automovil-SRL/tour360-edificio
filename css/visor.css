@@ -1,0 +1,1032 @@
+/* ============================================================================
+   visor.css · estilos del visor 360
+   ============================================================================ */
+
+/* =========================================================================
+Identidad
+========================================================================= */
+:root {
+  --azul: #0056ff;
+  --azul-claro: #3d84ff;
+  --tinta: #0a0c10;
+  --tinta-2: #151922;
+  --papel: #ffffff;
+  --gris: #8b93a3;
+  --borde: rgba(255, 255, 255, 0.14);
+  --vidrio: rgba(14, 17, 24, 0.72);
+  --sombra: 0 18px 50px rgba(0, 0, 0, 0.45);
+  --r: 14px;
+  --barra: 64px;
+}
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+html,
+body {
+  height: 100%;
+}
+body {
+  background: var(--tinta);
+  color: var(--papel);
+  font-family:
+    "Open Sans",
+    system-ui,
+    -apple-system,
+    Segoe UI,
+    sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+h1,
+h2,
+h3,
+.mul {
+  font-family: "Mulish", "Open Sans", sans-serif;
+}
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+:focus-visible {
+  outline: 2px solid var(--azul-claro);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* =========================================================================
+Escenario
+========================================================================= */
+#stage {
+  position: fixed;
+  inset: 0;
+  background: #05070b;
+}
+#gl {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: grab;
+  touch-action: none;
+  background: #05070b;
+}
+#gl.dragging {
+  cursor: grabbing;
+}
+#hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* ---- hotspots ---- */
+.hs {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: none;
+  align-items: center;
+  gap: 9px;
+  pointer-events: auto;
+  padding: 5px 5px 5px 5px;
+  border-radius: 999px;
+  background: rgba(10, 12, 16, 0);
+  transition: background 0.18s;
+  white-space: nowrap;
+}
+.hs:hover,
+.hs:focus-visible {
+  background: rgba(10, 12, 16, 0.55);
+  backdrop-filter: blur(6px);
+}
+.hs .dot {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1.5px solid rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(5px);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+  transition:
+    transform 0.18s cubic-bezier(0.2, 0.8, 0.3, 1),
+    background 0.18s,
+    border-color 0.18s;
+}
+.hs:hover .dot,
+.hs:focus-visible .dot {
+  transform: scale(1.12);
+  background: var(--azul);
+  border-color: #fff;
+}
+.hs svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.hs .lbl {
+  font-size: 12.5px;
+  letter-spacing: 0.02em;
+  font-weight: 600;
+  font-family: "Mulish", sans-serif;
+  opacity: 0;
+  transform: translateX(-6px);
+  transition:
+    opacity 0.18s,
+    transform 0.18s;
+  padding-right: 10px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+  max-width: 0;
+  overflow: hidden;
+}
+.hs:hover .lbl,
+.hs:focus-visible .lbl {
+  opacity: 1;
+  transform: none;
+  max-width: 260px;
+}
+/* salto: anillo en el piso + latido */
+.hs.salto .dot {
+  width: 52px;
+  height: 52px;
+  background: rgba(0, 86, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.85);
+}
+.hs.salto::before {
+  content: "";
+  position: absolute;
+  left: 26px;
+  top: 50%;
+  width: 52px;
+  height: 52px;
+  margin: -26px 0 0 -26px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.55);
+  animation: latido 2.4s ease-out infinite;
+  pointer-events: none;
+}
+@keyframes latido {
+  0% {
+    transform: scale(0.7);
+    opacity: 0.9;
+  }
+  70% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.hs.dato .dot {
+  width: 34px;
+  height: 34px;
+  background: rgba(0, 86, 255, 0.75);
+  border-color: rgba(255, 255, 255, 0.55);
+}
+.hs.dato svg {
+  width: 16px;
+  height: 16px;
+}
+.hs[data-listo="0"] {
+  opacity: 0.35;
+  pointer-events: none;
+}
+/* salto que quedó fuera de cuadro: se pega al borde como indicador de giro */
+.hs.borde {
+  opacity: 0.9;
+}
+.hs.borde::before {
+  display: none;
+}
+.hs.borde .dot {
+  width: 36px;
+  height: 36px;
+  background: rgba(10, 12, 16, 0.62);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+.hs.borde .lbl {
+  opacity: 1;
+  transform: none;
+  max-width: 210px;
+  font-size: 11.5px;
+  color: #dfe4ec;
+}
+.hs.borde[data-lado="der"] {
+  transform: translate(-100%, -50%);
+  flex-direction: row-reverse;
+}
+.hs.borde[data-lado="der"] .lbl {
+  padding: 0 0 0 11px;
+}
+.hs.borde[data-lado="izq"] {
+  transform: translate(0, -50%);
+}
+.hs.borde[data-lado="der"] svg {
+  transform: rotate(-90deg);
+}
+.hs.borde[data-lado="izq"] svg {
+  transform: rotate(90deg);
+}
+@media (max-width: 520px) {
+  .hs.borde .lbl {
+    display: none;
+  }
+}
+
+/* =========================================================================
+Barra superior
+========================================================================= */
+#top {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: var(--barra);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 0 16px;
+  background: linear-gradient(
+    180deg,
+    rgba(6, 8, 12, 0.85),
+    rgba(6, 8, 12, 0)
+  );
+  pointer-events: none;
+}
+#top > * {
+  pointer-events: auto;
+}
+.logo {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  user-select: none;
+}
+.logo b {
+  font-family: "Mulish", sans-serif;
+  font-weight: 800;
+  font-size: 21px;
+  letter-spacing: 0.08em;
+}
+.logo span {
+  font-size: 11.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gris);
+}
+
+/* selector de unidad */
+#unidades {
+  display: flex;
+  gap: 3px;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--vidrio);
+  border: 1px solid var(--borde);
+  backdrop-filter: blur(14px);
+}
+#unidades button {
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-family: "Mulish", sans-serif;
+  font-weight: 600;
+  font-size: 13.5px;
+  color: var(--gris);
+  transition:
+    color 0.2s,
+    background 0.2s;
+  white-space: nowrap;
+}
+#unidades button[aria-current="true"] {
+  background: var(--azul);
+  color: #fff;
+}
+#unidades button:hover:not([aria-current="true"]) {
+  color: #fff;
+}
+
+.crece {
+  flex: 1;
+}
+.iconbtn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--vidrio);
+  border: 1px solid var(--borde);
+  backdrop-filter: blur(14px);
+  transition: background 0.2s;
+}
+.iconbtn:hover {
+  background: rgba(0, 86, 255, 0.65);
+}
+.iconbtn svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: #fff;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* =========================================================================
+Barra inferior: ambientes
+========================================================================= */
+#bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  padding: 0 16px calc(16px + env(safe-area-inset-bottom));
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  background: linear-gradient(
+    0deg,
+    rgba(6, 8, 12, 0.8),
+    rgba(6, 8, 12, 0)
+  );
+  pointer-events: none;
+}
+#bottom > * {
+  pointer-events: auto;
+}
+#ambientes {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 10px 2px;
+  scrollbar-width: none;
+  flex: 1;
+}
+#ambientes::-webkit-scrollbar {
+  display: none;
+}
+.amb {
+  padding: 9px 16px;
+  border-radius: 999px;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: "Mulish", sans-serif;
+  color: #cfd5e0;
+  background: var(--vidrio);
+  border: 1px solid var(--borde);
+  backdrop-filter: blur(14px);
+  transition:
+    background 0.2s,
+    color 0.2s,
+    border-color 0.2s;
+}
+.amb:hover {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+.amb[aria-current="true"] {
+  background: #fff;
+  color: var(--tinta);
+  border-color: #fff;
+}
+
+/* =========================================================================
+Plano
+========================================================================= */
+/* El plano va en papel, no en vidrio: contra la interfaz oscura se lee como un
+plano impreso y no como otro panel más. */
+#plano {
+  position: relative;
+  flex: 0 0 auto;
+  height: 246px;
+  padding: 9px;
+  border-radius: var(--r);
+  background: rgba(246, 244, 240, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.45);
+  margin-bottom: 10px;
+  transition: height 0.25s;
+}
+#planoCaja {
+  position: relative;
+  height: 100%;
+}
+#planoCaja img {
+  display: block;
+  height: 100%;
+  width: auto;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+#planoCaja svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+#plano .lupa {
+  position: absolute;
+  right: 6px;
+  top: 6px;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: rgba(20, 24, 31, 0.06);
+  color: #4a5160;
+  opacity: 0;
+  transition:
+    opacity 0.18s,
+    background 0.18s;
+}
+#plano:hover .lupa {
+  opacity: 1;
+}
+#plano .lupa:hover {
+  background: rgba(0, 86, 255, 0.14);
+  color: var(--azul);
+}
+#plano .lupa svg {
+  position: static;
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+.cono {
+  fill: var(--azul);
+  opacity: 0.22;
+}
+.pin {
+  fill: #fff;
+  stroke: #4a5160;
+  stroke-width: 5;
+  cursor: pointer;
+  transition:
+    fill 0.18s,
+    stroke 0.18s;
+}
+.pinG {
+  cursor: pointer;
+}
+.pinG:hover .pin {
+  fill: #dce6ff;
+  stroke: var(--azul);
+}
+.pin.on {
+  fill: var(--azul);
+  stroke: #fff;
+  stroke-width: 6;
+}
+
+/* =========================================================================
+Plano grande
+========================================================================= */
+#planoGrande {
+  position: absolute;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(4, 6, 10, 0.87);
+  backdrop-filter: blur(7px);
+  transition: opacity 0.22s;
+}
+#planoGrande.off {
+  opacity: 0;
+  pointer-events: none;
+}
+#planoGrande .hoja {
+  background: #f6f4f0;
+  color: #14181f;
+  border-radius: 18px;
+  padding: 14px 14px 16px;
+  box-shadow: 0 34px 90px rgba(0, 0, 0, 0.65);
+  max-width: min(94vw, 1120px);
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+#planoGrande header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 2px 4px 0;
+}
+#planoGrande h2 {
+  font-family: "Mulish", sans-serif;
+  font-size: 17px;
+  font-weight: 800;
+}
+#planoGrande .sub {
+  font-size: 12px;
+  color: #6c7484;
+  flex: 1;
+}
+#pgX {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  line-height: 1;
+  color: #6c7484;
+  align-self: flex-start;
+}
+#pgX:hover {
+  background: rgba(20, 24, 31, 0.08);
+  color: #14181f;
+}
+#planoGrande .lienzo {
+  position: relative;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+}
+#planoGrande .marco {
+  position: relative;
+  max-width: 100%;
+  max-height: 100%;
+}
+#planoGrande .marco img {
+  display: block;
+  max-height: calc(92vh - 112px);
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+#planoGrande .marco svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+#planoGrande .etq {
+  font-family: "Mulish", sans-serif;
+  font-weight: 700;
+  fill: #20252f;
+  paint-order: stroke;
+  stroke: #f6f4f0;
+  stroke-width: 5;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+#planoGrande .etq.on {
+  fill: var(--azul);
+}
+@media (max-width: 600px) {
+  #planoGrande {
+    padding: 10px;
+  }
+  #planoGrande .hoja {
+    padding: 10px;
+  }
+  #planoGrande .marco img {
+    max-height: calc(92vh - 96px);
+  }
+}
+
+/* =========================================================================
+Panel de datos
+========================================================================= */
+#ficha {
+  position: absolute;
+  right: 16px;
+  top: calc(var(--barra) + 12px);
+  width: 288px;
+  z-index: 25;
+  border-radius: var(--r);
+  background: var(--vidrio);
+  border: 1px solid var(--borde);
+  backdrop-filter: blur(18px);
+  box-shadow: var(--sombra);
+  overflow: hidden;
+  transform-origin: top right;
+  transition:
+    opacity 0.25s,
+    transform 0.25s;
+}
+#ficha.off {
+  opacity: 0;
+  transform: scale(0.96) translateY(-6px);
+  pointer-events: none;
+}
+#ficha header {
+  padding: 15px 16px 12px;
+  border-bottom: 1px solid var(--borde);
+}
+#ficha h2 {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+#ficha header p {
+  font-size: 12px;
+  color: var(--gris);
+  margin-top: 2px;
+}
+#ficha dl {
+  padding: 6px 16px 12px;
+}
+#ficha .fila {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+#ficha .fila:last-child {
+  border: 0;
+}
+#ficha dt {
+  font-size: 12.5px;
+  color: var(--gris);
+}
+#ficha dd {
+  font-size: 13px;
+  font-weight: 600;
+  font-family: "Mulish", sans-serif;
+  text-align: right;
+}
+#ficha .nota {
+  padding: 0 16px 14px;
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: #6d7484;
+}
+#ficha .cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: 100%;
+  padding: 13px;
+  background: var(--azul);
+  font-family: "Mulish", sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+#ficha .cta:hover {
+  background: #0048d6;
+}
+#ficha .cta svg {
+  width: 18px;
+  height: 18px;
+  fill: #fff;
+}
+
+/* =========================================================================
+Tarjeta de información
+========================================================================= */
+#tarjeta {
+  position: absolute;
+  left: 50%;
+  bottom: 96px;
+  transform: translate(-50%, 14px);
+  z-index: 30;
+  width: min(430px, calc(100vw - 32px));
+  border-radius: var(--r);
+  background: rgba(12, 15, 21, 0.9);
+  border: 1px solid var(--borde);
+  backdrop-filter: blur(18px);
+  box-shadow: var(--sombra);
+  padding: 18px 20px 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.22s,
+    transform 0.22s;
+}
+#tarjeta.on {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  pointer-events: auto;
+}
+#tarjeta h3 {
+  font-size: 16px;
+  font-weight: 800;
+  padding-right: 28px;
+}
+#tarjeta p {
+  font-size: 13.5px;
+  color: #c3cad6;
+  margin-top: 7px;
+}
+#tarjetaX {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--gris);
+  font-size: 18px;
+  line-height: 1;
+}
+#tarjetaX:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+/* =========================================================================
+Modo edición  (tecla E) — no se ve en el sitio publicado
+========================================================================= */
+#editor {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  z-index: 90;
+  background: rgba(10, 13, 18, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 12px;
+  padding: 12px 14px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  transition: opacity 0.2s;
+}
+#editor.off {
+  opacity: 0;
+  pointer-events: none;
+}
+#editor .fila1 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+#editor .tag {
+  font-family: "Mulish", sans-serif;
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #ffd34d;
+}
+#editor .ayu {
+  font-size: 12px;
+  color: #98a0b0;
+  flex: 1;
+  min-width: 200px;
+}
+#editor button.bx {
+  padding: 7px 13px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  font-family: "Mulish", sans-serif;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+#editor button.bx:hover {
+  background: var(--azul);
+  border-color: var(--azul);
+}
+#editor pre {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.5);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.65;
+  color: #d7ddea;
+  white-space: pre-wrap;
+  max-height: 24vh;
+  overflow: auto;
+  user-select: text;
+}
+body.editando #gl {
+  cursor: crosshair;
+}
+body.editando .hs {
+  cursor: move;
+}
+body.editando .hs .lbl {
+  opacity: 1;
+  transform: none;
+  max-width: 260px;
+}
+#mira {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  margin: -11px 0 0 -11px;
+  z-index: 35;
+  border: 2px solid #ffd34d;
+  border-radius: 50%;
+  pointer-events: none;
+  display: none;
+}
+#mira::after {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  background: #ffd34d;
+  border-radius: 50%;
+}
+
+/* =========================================================================
+Carga, ayuda, errores
+========================================================================= */
+#carga {
+  position: absolute;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  background: var(--tinta);
+  transition: opacity 0.5s;
+  text-align: center;
+  padding: 24px;
+}
+#carga.off {
+  opacity: 0;
+  pointer-events: none;
+}
+#carga .marca {
+  font-family: "Mulish", sans-serif;
+  font-weight: 800;
+  font-size: 34px;
+  letter-spacing: 0.12em;
+}
+#carga .sub {
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gris);
+  margin-top: 6px;
+}
+#barra {
+  width: 212px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 2px;
+  margin: 26px auto 0;
+  overflow: hidden;
+}
+#barra i {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--azul);
+  transition: width 0.3s;
+}
+#cargaMsg {
+  font-size: 12px;
+  color: var(--gris);
+  margin-top: 12px;
+  min-height: 18px;
+}
+#ayuda {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 15;
+  max-width: min(88vw, 460px);
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 20px;
+  border-radius: 999px;
+  background: rgba(10, 12, 16, 0.62);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--borde);
+  font-size: 13px;
+  color: #dfe4ec;
+  pointer-events: none;
+  transition: opacity 0.6s;
+}
+#ayuda.off {
+  opacity: 0;
+}
+#ayuda svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: #fff;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+#girando {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 34px;
+  height: 34px;
+  margin: -17px;
+  z-index: 35;
+  border: 2.5px solid rgba(255, 255, 255, 0.2);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: giro 0.8s linear infinite;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+#girando.on {
+  opacity: 1;
+}
+@keyframes giro {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =========================================================================
+Chico
+========================================================================= */
+@media (max-width: 860px) {
+  :root {
+    --barra: 56px;
+  }
+  .logo span {
+    display: none;
+  }
+  #ficha {
+    right: 10px;
+    left: 10px;
+    width: auto;
+    top: auto;
+    bottom: 150px;
+    max-width: none;
+  }
+  #ficha.off {
+    transform: translateY(10px) scale(0.98);
+  }
+  #plano {
+    height: 170px;
+    padding: 7px;
+  }
+  #plano .lupa {
+    display: none;
+  }
+  #tarjeta {
+    bottom: 150px;
+  }
+  #unidades button {
+    padding: 7px 13px;
+    font-size: 12.5px;
+  }
+}
+@media (max-width: 520px) {
+  #plano {
+    display: none;
+  }
+  #top {
+    gap: 9px;
+    padding: 0 10px;
+  }
+  #btnPantalla,
+  #btnCentrar {
+    display: none;
+  }
+  #unidades button {
+    padding: 7px 11px;
+    font-size: 12px;
+  }
+  #ayuda {
+    padding: 9px 15px;
+    font-size: 12px;
+  }
+}

@@ -3,7 +3,7 @@ REM ---------------------------------------------------------------------------
 REM Los minimapas del visor. Doble click DESPUES de 4-plano.bat.
 REM
 REM Toma export\tour360_salida\planta-color.png, recorta plano-mono.png y
-REM plano-dos.png y actualiza solo la constante PLANOS del index.html.
+REM plano-dos.png y reescribe js\planos.js (la constante PLANOS).
 REM Usa el Python que trae Blender: no hace falta instalar nada.
 REM ---------------------------------------------------------------------------
 setlocal
