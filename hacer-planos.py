@@ -26,12 +26,62 @@
 #           muro se come los muros y deja los muebles. Lo que desaparece era muro.
 # ---------------------------------------------------------------------------
 
-import sys, os, json
+import sys, os, json, re
 import numpy as np
-from PIL import Image
-from scipy import ndimage
 
-RUTA = os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else "planta.png")
+# ---------------------------------------------------------------------------
+# DOS FORMAS DE CORRERLO (23/09), igual que 7-fondo.py:
+#
+#   python hacer-planos.py "planta-color.png"
+#   blender -b -P hacer-planos.py -- "planta-color.png"     (hacer-planos.bat)
+#
+# El Python de Blender tiene numpy pero NO Pillow ni scipy. Con Blender las
+# imágenes se leen y graban con Blender, y el modo COLOR (el que se usa) anda
+# igual. El modo TINTA necesita scipy (morfología): sólo con Python instalado.
+#
+# Y al final pega el planos.json en la constante PLANOS del index.html: era un
+# paso a mano, y si se olvidaba los pines quedaban corridos.
+# ---------------------------------------------------------------------------
+try:
+    import bpy
+    EN_BLENDER = True
+except ImportError:
+    EN_BLENDER = False
+try:
+    from PIL import Image
+except ImportError:
+    Image = None
+
+ARGS = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else sys.argv[1:]
+
+def leer_rgba(ruta):
+    """uint8 H x W x 4, fila 0 ARRIBA."""
+    if Image is not None:
+        return np.asarray(Image.open(ruta).convert("RGBA")).copy()
+    img = bpy.data.images.load(ruta)
+    w, h = img.size
+    px = np.empty(w * h * 4, np.float32); img.pixels.foreach_get(px)
+    return (np.clip(px.reshape(h, w, 4)[::-1], 0, 1) * 255 + 0.5).astype(np.uint8)
+
+def redimensionar(a, w, h):
+    if Image is not None:
+        return np.asarray(Image.fromarray(a, "RGBA").resize((w, h), Image.LANCZOS))
+    H_, W_ = a.shape[:2]
+    img = bpy.data.images.new("tmp", W_, H_, alpha=True)
+    img.pixels.foreach_set((a[::-1].astype(np.float32) / 255.0).ravel())
+    img.scale(w, h)
+    px = np.empty(w * h * 4, np.float32); img.pixels.foreach_get(px)
+    return (np.clip(px.reshape(h, w, 4)[::-1], 0, 1) * 255 + 0.5).astype(np.uint8)
+
+def guardar_png(a, ruta):
+    if Image is not None:
+        Image.fromarray(a, "RGBA").save(ruta, optimize=True); return
+    h, w = a.shape[:2]
+    img = bpy.data.images.new("salida", w, h, alpha=True)
+    img.pixels.foreach_set((a[::-1].astype(np.float32) / 255.0).ravel())
+    img.filepath_raw = ruta; img.file_format = "PNG"; img.save()
+
+RUTA = os.path.abspath(ARGS[0] if ARGS else "planta.png")
 AQUI = os.path.dirname(os.path.abspath(__file__))
 SALIDA = AQUI
 
@@ -54,9 +104,17 @@ else:
 # El muro entre las dos unidades va de x=3,56 a x=4,04 (medido sobre la planta:
 # son las columnas donde la tinta es continua). Se parte al medio, así cada
 # unidad muestra su propio cierre y ninguna muestra los muebles de la otra.
+#
+# CORREGIDO el 22/09. Estos marcos estaban CORTOS por el norte —mono 8,75 y dos
+# 8,45— y recortaban justo el fondo de cada unidad: al mono le comían los 2,2 m
+# donde va el baño, y al dos, la mesada de la cocina (está en y 8,60–9,01).
+# Los muros exteriores del fondo, medidos sobre la planta, están en:
+#     mono   y ≈ 10,97 (en x=0,6)  …  11,44 (en x=3,4)   -> marco hasta 11,60
+#     dos    y ≈  9,06 (en x=6,5)  …   9,51 (en x=9,5)   -> marco hasta  9,70
+# El recorte fino al alfa se encarga del resto.
 UNIDADES = {
-    "mono": {"x": (-0.30, 3.80), "y": (-0.30, 8.75), "alto": 1200},
-    "dos":  {"x": ( 3.86, 11.35), "y": (-0.30, 8.45), "alto": 1200},
+    "mono": {"x": (-0.30, 3.80), "y": (-0.30, 11.60), "alto": 1200},
+    "dos":  {"x": ( 3.86, 11.35), "y": (-0.30,  9.70), "alto": 1200},
 }
 
 # --- paleta del modo TINTA ---------------------------------------------------
@@ -65,22 +123,21 @@ MUEBLE = (176, 182, 192)
 PAPEL  = (247, 245, 241)
 SOMBRA = (214, 212, 207)
 
-src = Image.open(RUTA)
-W, H = src.size
+SRC = leer_rgba(RUTA)
+H, W = SRC.shape[:2]
 MX = (XMAX - XMIN) / W
 print(f"  planta {W}x{H}, {MX*100:.3f} cm por pixel")
 
 alfa = None
-if src.mode in ("RGBA", "LA"):
-    a = np.asarray(src.convert("RGBA"))[..., 3]
-    if (a < 200).mean() > 0.02:
-        alfa = a
+a = SRC[..., 3]
+if (a < 200).mean() > 0.02:
+    alfa = a
 COLOR = alfa is not None
 print("  modo: " + ("COLOR (fondo por alfa)" if COLOR else "TINTA (fondo por gris plano)"))
 
 if COLOR:
     # -------- render con materiales: sólo un ajuste suave --------------------
-    rgb = np.asarray(src.convert("RGB")).astype(np.float32) / 255.0
+    rgb = SRC[..., :3].astype(np.float32) / 255.0
     # un toque de contraste y de saturación: el AgX sale correcto pero apagado
     rgb = np.clip((rgb - 0.5) * 1.10 + 0.5, 0, 1)
     lum = rgb @ np.array([0.2126, 0.7152, 0.0722], np.float32)
@@ -90,7 +147,12 @@ if COLOR:
     out[..., 3] = alfa
 else:
     # -------- render de trabajo en grises: se reconstruye el plano -----------
-    g = np.asarray(src.convert("L")).astype(np.int16)
+    try:
+        from scipy import ndimage
+    except ImportError:
+        raise SystemExit("  El modo TINTA necesita scipy: corré esto con Python "
+                         "instalado (pip install numpy pillow scipy).")
+    g = (SRC[..., :3].astype(np.float32) @ np.array([0.299, 0.587, 0.114], np.float32)).astype(np.int16)
 
     fondo = np.abs(g - 97) <= 7
     # Ojo: la morfología de scipy trata lo de afuera del array como vacío, así que
@@ -126,8 +188,6 @@ else:
     out[..., 3] = 255
     out[fondo, 3] = 0
 
-img = Image.fromarray(out, "RGBA")
-
 def px(x): return (x - XMIN) / (XMAX - XMIN) * W
 def py(y): return (YMAX - y) / (YMAX - YMIN) * H
 
@@ -136,7 +196,7 @@ for k, u in UNIDADES.items():
     x0, x1 = u["x"]; y0, y1 = u["y"]
     caja = (max(0, int(round(px(x0)))), max(0, int(round(py(y1)))),
             min(W, int(round(px(x1)))), min(H, int(round(py(y0)))))
-    rec = img.crop(caja)
+    rec = out[caja[1]:caja[3], caja[0]:caja[2]]
     x0 = XMIN + caja[0] * MX; x1 = XMIN + caja[2] * MX
     y1 = YMAX - caja[1] * MX; y0 = YMAX - caja[3] * MX
 
@@ -144,21 +204,22 @@ for k, u in UNIDADES.items():
     # aire de más, y en un minimapa de 120 px ese aire es media tarjeta. Como el
     # recorte cambia, hay que recalcular a qué metros corresponde: si no, los
     # pines quedan corridos.
-    bb = rec.split()[3].point(lambda v: 255 if v > 8 else 0).getbbox()
-    if bb:
+    hay = rec[..., 3] > 8
+    filas = np.where(hay.any(axis=1))[0]; cols = np.where(hay.any(axis=0))[0]
+    if len(filas) and len(cols):
         M = 8
-        bb = (max(0, bb[0]-M), max(0, bb[1]-M),
-              min(rec.size[0], bb[2]+M), min(rec.size[1], bb[3]+M))
+        bb = (max(0, cols[0]-M), max(0, filas[0]-M),
+              min(rec.shape[1], cols[-1]+1+M), min(rec.shape[0], filas[-1]+1+M))
         x0 = x0 + bb[0] * MX;  x1 = x0 + (bb[2] - bb[0]) * MX
         y1 = y1 - bb[1] * MX;  y0 = y1 - (bb[3] - bb[1]) * MX
-        rec = rec.crop(bb)
+        rec = rec[bb[1]:bb[3], bb[0]:bb[2]]
 
-    alto = min(u["alto"], rec.size[1])
-    ancho = max(1, int(round(alto * rec.size[0] / rec.size[1])))
-    if (ancho, alto) != rec.size:
-        rec = rec.resize((ancho, alto), Image.LANCZOS)
+    alto = min(u["alto"], rec.shape[0])
+    ancho = max(1, int(round(alto * rec.shape[1] / rec.shape[0])))
+    if (alto, ancho) != rec.shape[:2]:
+        rec = redimensionar(np.ascontiguousarray(rec), ancho, alto)
     nombre = f"plano-{k}.png"
-    rec.save(os.path.join(SALIDA, nombre), optimize=True)
+    guardar_png(np.ascontiguousarray(rec), os.path.join(SALIDA, nombre))
     mapa[k] = {"archivo": nombre,
                "xmin": round(x0, 4), "xmax": round(x1, 4),
                "ymin": round(y0, 4), "ymax": round(y1, 4),
@@ -169,4 +230,27 @@ for k, u in UNIDADES.items():
 
 with open(os.path.join(SALIDA, "planos.json"), "w", encoding="utf-8") as f:
     json.dump(mapa, f, indent=2, ensure_ascii=False)
-print("\n  listo. Pegá el contenido de planos.json en la constante PLANOS del index.html\n")
+
+# --- y pegarlo en el index.html ---------------------------------------------
+# Sólo se reemplazan las líneas de cada unidad adentro de "const PLANOS = {",
+# con el mismo formato que ya tienen. Si no las encuentra, avisa y no toca nada.
+idx = os.path.join(SALIDA, "index.html")
+try:
+    with open(idx, encoding="utf-8", newline="") as f:
+        html = f.read()
+    cambios = 0
+    for k, m in mapa.items():
+        linea = (f'{k}:{" " * max(1, 5 - len(k))}{{ archivo:"{m["archivo"]}", '
+                 f'xmin:{m["xmin"]}, xmax:{m["xmax"]}, ymin:{m["ymin"]}, '
+                 f'ymax:{m["ymax"]}, px:{m["px"]}, py:{m["py"]} }}')
+        html, n = re.subn(r'(?m)^(\s*)' + k + r':\s*\{ archivo:"plano-' + k + r'\.png"[^\n]*?\}',
+                          lambda mt: mt.group(1) + linea, html, count=1)
+        cambios += n
+    if cambios == len(mapa):
+        with open(idx, "w", encoding="utf-8", newline="") as f:
+            f.write(html)
+        print("\n  listo. PLANOS del index.html actualizado solo.\n")
+    else:
+        print("\n  listo, pero NO encontré PLANOS en el index.html: pegá planos.json a mano.\n")
+except OSError:
+    print("\n  listo. Pegá el contenido de planos.json en la constante PLANOS del index.html\n")

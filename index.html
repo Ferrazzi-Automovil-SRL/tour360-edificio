@@ -483,6 +483,15 @@ const MARCA = {
 const ALTURA_CAMARA = 1.60;      // igual a "altura_camara" del camaras.json
 const CARPETA = "panoramas/";    // dónde están los JPG, con la barra final
 
+/* VERSION: subí este número cada vez que reemplaces los panoramas.
+   El navegador guarda las imágenes en su caché y las reconoce por la URL. Si
+   pisás dos_living.jpg con otra imagen, la URL no cambió, así que el navegador
+   sigue mostrando la que ya tenía: no vuelve a pedirla. Con esto la URL pasa a
+   ser "panoramas/dos_living.jpg?v=2", que para él es un archivo distinto.
+   (Para ver un cambio sin tocar esto, recargá con Ctrl+Shift+R.) */
+const VERSION = 1;
+const url = k => CARPETA + k + ".jpg?v=" + VERSION;
+
 /* --- los planos de la esquina, uno por unidad ------------------------------
    Los genera hacer-planos.py a partir del planta.png del paso 1, y escribe
    estos mismos números en planos.json. Si volvés a generarlos, pegá ese JSON
@@ -490,8 +499,8 @@ const CARPETA = "panoramas/";    // dónde están los JPG, con la barra final
    recorte, en metros, y es lo que le permite al visor poner cada pin en su
    lugar sin que nadie mida píxeles.                                          */
 const PLANOS = {
-  mono: { archivo:"plano-mono.png", xmin:0.1318, xmax:3.7988, ymin:-0.0646, ymax:8.7506, px:499, py:1200 },
-  dos:  { archivo:"plano-dos.png", xmin:3.8568, xmax:10.9657, ymin:-0.0646, ymax:8.4529, px:979, py:1173 }
+  mono: { archivo:"plano-mono.png", xmin:-0.0509, xmax:3.8019, ymin:-0.0522, ymax:11.5427, px:399, py:1200 },
+  dos:  { archivo:"plano-dos.png", xmin:3.8629, xmax:10.9578, ymin:-0.0644, ymax:9.6988, px:872, py:1200 }
 };
 
 const UNIDADES = {
@@ -503,10 +512,11 @@ const UNIDADES = {
       ["Ambiente único",  "3,05 × 5,60 m · 17,1 m²"],
       ["Balcón",          "2,45 m de largo · 4,2 m²"],
       ["Cocina",          "Integrada, 2,45 m de mesada"],
+      ["Baño",            "Completo · 2,00 × 3,10 m · 6,3 m²"],
       ["Piso",            MARCA.piso]
     ],
     inicio: "mono_estar",          // con qué imagen abre la unidad
-    orden: ["mono_entrada","mono_estar","mono_balcon"]
+    orden: ["mono_entrada","mono_bano","mono_estar","mono_balcon"]
   },
   dos: {
     nombre: "Dos ambientes",
@@ -517,10 +527,11 @@ const UNIDADES = {
       ["Dormitorio",    "3,00 × 4,05 m · 12,1 m²"],
       ["Balcón",        "6,10 m de largo · 9,6 m²"],
       ["Cocina",        "Lineal, 2,60 m de mesada"],
+      ["Baño",          "Completo · 2,16 × 1,49 m · 3,2 m²"],
       ["Piso",          MARCA.piso]
     ],
     inicio: "dos_comedor",
-    orden: ["dos_dormitorio","dos_comedor","dos_cocina","dos_living","dos_balcon","dos_balcon_dorm"]
+    orden: ["dos_dormitorio","dos_comedor","dos_bano","dos_cocina","dos_living","dos_balcon","dos_balcon_dorm"]
   }
 };
 
@@ -529,10 +540,9 @@ const ESCENAS = {
   mono_entrada: {
     nombre:"Entrada", unidad:"mono",
     pos:[3.35, 8.15], giro:180,
-    // El salto lleva un ángulo propio: la línea recta hasta el estar atraviesa
-    // la pared de la cocina, y la marca caía sobre la mesada. El paso real es
-    // el vano de adelante. El rumbo de LLEGADA sigue siendo el del viaje.
-    saltos:[{ a:"mono_estar", mirando:[2, -24] }],
+    // 29/09: con el estar en 3,00/5,80 la recta pasa por el vano (x 2,9-3,85)
+    // y el salto ya no necesita ángulo propio.
+    saltos:["mono_estar"],
     datos:[
       { mirando:[40, -20], titulo:"Cocina integrada",
         texto:"Mesada corrida de 2,45 m con bajo mesada y alacena en toda su extensión, más el paño de heladera y despensa sobre el otro lateral. Al quedar en el hall de acceso, no le come metros al ambiente." },
@@ -542,13 +552,29 @@ const ESCENAS = {
   },
   mono_estar: {
     nombre:"Estar", unidad:"mono",
-    pos:[1.90, 5.90], giro:148, vista:-40,
+    // 29/09: movida de 1,90/5,90 (encima de una silla) al lugar libre más
+    // cercano. Los datos van por coordenadas del mundo, no por ángulo.
+    pos:[3.00, 5.80], giro:148, vista:-40,
     saltos:["mono_entrada","mono_balcon"],
     datos:[
-      { mirando:[-8, -20], titulo:"Zona de descanso",
+      { en:[1.95, 3.10, 0.55], titulo:"Zona de descanso",
         texto:"El ambiente tiene 3,05 × 5,60 m: entra cama de dos plazas contra el frente sin bloquear el paso al balcón, y del otro lado queda lugar para estar y comedor diario." },
-      { mirando:[-68, -3], titulo:"Mueble de living y TV",
+      { en:[3.80, 3.22, 1.20], titulo:"Mueble de living y TV",
         texto:"Mueble bajo corrido con estantes altos sobre el paramento este, con el televisor integrado. Es el único módulo fijo del ambiente: todo lo demás se acomoda como quieras." }
+    ]
+  },
+  /* El baño (23/09). La cámara está en el paso de la puerta (y 7,75-8,55):
+     la recta hasta la entrada pasa por el vano, así que el salto no necesita
+     ángulo propio. Los muros de este baño son los tres inclinados.          */
+  mono_bano: {
+    nombre:"Baño", unidad:"mono",
+    pos:[1.55, 8.45], giro:15,
+    saltos:["mono_entrada"],
+    datos:[
+      { en:[1.01, 10.66, 0.55], titulo:"Baño completo de 6,3 m²",
+        texto:"2,00 × 3,10 m. Bañera de 1,60 m en el fondo y los artefactos en línea sobre la pared lateral, con toda la circulación libre." },
+      { en:[0.69, 8.55, 1.40], titulo:"Vanitory con espejo",
+        texto:"Mueble suspendido con mesada de granito y bacha de apoyo, en el nicho junto a la puerta." }
     ]
   },
   mono_balcon: {
@@ -576,12 +602,16 @@ const ESCENAS = {
   dos_comedor: {
     nombre:"Comedor", unidad:"dos",
     pos:[7.60, 4.90], giro:273,
-    // Los dos saltos llevan ángulo propio: la recta al living pasaba por encima
-    // de la mesa ratona y quedaba flotando, y la recta a la cocina atraviesa la
-    // barra. Los dos ángulos están medidos sobre el panorama.
+    // La recta a la cocina atraviesa la barra: ese salto lleva ángulo propio,
+    // medido sobre el panorama. El del living ya no (29/09): la cámara del
+    // living se movió de encima de la mesa ratona y la recta quedó libre.
     saltos:["dos_dormitorio",
-            { a:"dos_living", mirando:[68, -36] },
-            { a:"dos_cocina", mirando:[-95, -30] }],
+            "dos_living",
+            { a:"dos_cocina", mirando:[-95, -30] },
+            // La recta al baño atraviesa el muro: la marca va a la PUERTA
+            // (x 6,93 · y 6,49). Calculado, no medido: rumbo -22,9° + giro 273.
+            // Si cuando esté el panorama cae corrida, corregila con la tecla E.
+            { a:"dos_bano", mirando:[-110, -24] }],
     datos:[
       { mirando:[-79, -4], titulo:"Mesada y frente",
         texto:"Mesada corrida de 2,60 m con frente de azulejo tipo subway y bajo mesada en toda su extensión. Queda a la vista desde el comedor, así que el frente es parte del ambiente." },
@@ -603,9 +633,24 @@ const ESCENAS = {
     saltos:[{ a:"dos_comedor", mirando:[-40, -25] }],
     datos:[]
   },
+  /* El baño (23/09). En el modelo la puerta estaba cerrada: el script la abre
+     90° hacia afuera (mover_objetos en camaras.json). La cámara queda entre
+     el vanitory y el bidet, mirando la bañera.                               */
+  dos_bano: {
+    nombre:"Baño", unidad:"dos",
+    pos:[6.40, 6.66], giro:90,
+    // de vuelta al comedor, también por la puerta: rumbo 107,8° + giro 90
+    saltos:[{ a:"dos_comedor", mirando:[-162, -24] }],
+    datos:[
+      { en:[5.06, 6.76, 0.55], titulo:"Baño completo",
+        texto:"2,16 × 1,49 m. Bañera a lo largo de todo el fondo, inodoro y bidet sobre la misma pared y vanitory suspendido enfrente." },
+      { en:[5.865, 6.02, 1.45], titulo:"Vanitory suspendido",
+        texto:"Mueble de 0,63 m con mesada de granito, bacha de apoyo y espejo. Al quedar suspendido deja el piso libre y el baño se ve más amplio." }
+    ]
+  },
   dos_living: {
     nombre:"Living", unidad:"dos",
-    pos:[8.70, 2.90], giro:232,
+    pos:[8.60, 4.00], giro:232,   // 29/09: antes 8,70/2,90, encima de la mesa ratona
     saltos:["dos_comedor","dos_balcon"],
     datos:[
       { en:[10.18, 3.20, 0.55], titulo:"Estar de 22,2 m²",
@@ -1430,7 +1475,7 @@ function cargarUna(k){
       res(texturas[k]);
     };
     im.onerror = () => { descartar(k); res(null); };
-    im.src = CARPETA + k + ".jpg";
+    im.src = url(k);
   });
 }
 
