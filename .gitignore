@@ -1,3 +1,9 @@
-# Lo que Git no sube: basura que genera Python sola.
+# Lo que Git no sube.
+
+# Basura que genera Python sola.
 __pycache__/
 *.pyc
+
+# Los .bat son atajos de doble clic para la PC: estan en herramientas/ pero no
+# se suben al repo (se copian a mano junto con el resto del proyecto).
+*.bat

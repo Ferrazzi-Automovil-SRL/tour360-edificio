@@ -8,23 +8,23 @@ y no necesita servidor.
 ```
 tour360-web/
 ├── index.html          ← sólo la estructura de la página (HTML)
-├── css/
-│   └── visor.css       ← todos los estilos
+├── README.md           ← la portada del repo en GitHub
+├── css/visor.css       ← todos los estilos
 ├── js/
 │   ├── config.js       ← LO EDITABLE: marca, WhatsApp, VERSION, unidades, escenas
 │   ├── planos.js       ← generado por hacer-planos.py, no tocar a mano
 │   └── visor.js        ← la maquinaria (WebGL, hotspots, controles, carga)
+├── img/                ← minimapas (plano-mono.png, plano-dos.png)
 ├── panoramas/          ← los JPG del render
-├── plano-mono.png      ← minimapa del monoambiente
-├── plano-dos.png       ← minimapa del dos ambientes
-├── _config.yml         ← lo que GitHub Pages NO publica (.bat, .py, LEEME…)
-└── herramientas de trabajo (no salen en el sitio):
-    abrir-visor.bat, abrir-visor-node.bat, servidor.js,
-    hacer-planos.bat, hacer-planos.py, planos.json
+└── herramientas/       ← este manual, hacer-planos, servidor.js y los .bat
+                          (los .bat no se suben a GitHub: .gitignore)
 ```
 
 Los tres `<script>` del `index.html` van en ese orden: `visor.js` usa las
 constantes de `config.js` y `planos.js`.
+
+Los `.bat` de `herramientas\` se paran solos en `tour360-web`: se usan con
+doble clic igual que antes, sólo cambió la carpeta.
 
 ---
 

@@ -5,8 +5,9 @@
    trabajo no tiene Python instalado y el abrir-visor.bat de siempre no arranca.
    Node alcanza y sobra: el visor son archivos estáticos.
    
-       node servidor.js .          -> http://localhost:8000
-       node servidor.js . 8080     -> otro puerto
+       node herramientas\servidor.js .          -> http://localhost:8000
+       node herramientas\servidor.js . 8080     -> otro puerto
+   (parado en tour360-web; abrir-visor-node.bat ya lo hace así)
    
    Manda Cache-Control: no-store, así que mientras probás NO hace falta subir
    la constante VERSION de js/config.js ni hacer Ctrl+Shift+R. Para la web

@@ -1,12 +1,12 @@
 # ---------------------------------------------------------------------------
 # hacer-planos.py  ·  arma los minimapas del visor a partir del render de planta
 #
-#   python hacer-planos.py "..\export\tour360_salida\planta-color.png"    (color)
-#   python hacer-planos.py "..\export\tour360_salida\planta.png"          (blanco y negro)
+#   python hacer-planos.py "..\..\export\tour360_salida\planta-color.png"    (color)
+#   python hacer-planos.py "..\..\export\tour360_salida\planta.png"          (blanco y negro)
 #
 # Toma la planta entera del piso y devuelve un PNG por unidad, recortado y con el
-# fondo transparente, más un planos.json con a qué metros corresponde cada
-# recorte. Ese JSON queda escrito en js/planos.js (constante PLANOS): es lo que
+# fondo transparente (en img/), y escribe en js/planos.js a qué metros
+# corresponde cada recorte (constante PLANOS): es lo que
 # hace que los pines caigan solos en su lugar.
 #
 # Trabaja de dos maneras según lo que le des:
@@ -83,7 +83,7 @@ def guardar_png(a, ruta):
 
 RUTA = os.path.abspath(ARGS[0] if ARGS else "planta.png")
 AQUI = os.path.dirname(os.path.abspath(__file__))
-SALIDA = AQUI
+SALIDA = os.path.dirname(AQUI)   # 30/09: el script vive en herramientas/, el visor un nivel arriba
 
 # --- extensión en metros: del json que acompaña al png ----------------------
 base = os.path.splitext(RUTA)[0] + ".json"
@@ -218,7 +218,8 @@ for k, u in UNIDADES.items():
     ancho = max(1, int(round(alto * rec.shape[1] / rec.shape[0])))
     if (alto, ancho) != rec.shape[:2]:
         rec = redimensionar(np.ascontiguousarray(rec), ancho, alto)
-    nombre = f"plano-{k}.png"
+    nombre = f"img/plano-{k}.png"
+    os.makedirs(os.path.join(SALIDA, "img"), exist_ok=True)
     guardar_png(np.ascontiguousarray(rec), os.path.join(SALIDA, nombre))
     mapa[k] = {"archivo": nombre,
                "xmin": round(x0, 4), "xmax": round(x1, 4),
@@ -227,9 +228,6 @@ for k, u in UNIDADES.items():
     kb = os.path.getsize(os.path.join(SALIDA, nombre)) / 1024
     print(f"  {nombre}  {ancho}x{alto}  {kb:.0f} KB   "
           f"({x0:.2f} … {x1:.2f}) x ({y0:.2f} … {y1:.2f}) m")
-
-with open(os.path.join(SALIDA, "planos.json"), "w", encoding="utf-8") as f:
-    json.dump(mapa, f, indent=2, ensure_ascii=False)
 
 # --- y escribir js/planos.js ------------------------------------------------
 # 30/09: el visor se separó en css/ y js/. Los planos viven solos en

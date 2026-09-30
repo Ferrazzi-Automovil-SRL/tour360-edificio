@@ -9,7 +9,7 @@
 
 const PLANOS = {
   mono: {
-    archivo: "plano-mono.png",
+    archivo: "img/plano-mono.png",
     xmin: -0.0509,
     xmax: 3.8019,
     ymin: -0.0522,
@@ -18,7 +18,7 @@ const PLANOS = {
     py: 1200,
   },
   dos: {
-    archivo: "plano-dos.png",
+    archivo: "img/plano-dos.png",
     xmin: 3.8629,
     xmax: 10.9578,
     ymin: -0.0644,
